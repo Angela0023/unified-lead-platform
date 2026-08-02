@@ -9,10 +9,7 @@ import type {
   CreditsResult,
   EmailVerdict,
 } from "./types";
-import {
-  BATCH_MAX_WAIT_MS,
-  BATCH_POLL_INTERVAL_MS,
-} from "./types";
+import { BATCH_MAX_WAIT_MS, BATCH_POLL_INTERVAL_MS } from "./types";
 
 const BASE_URL = "https://api.millionverifier.com/api/v4";
 

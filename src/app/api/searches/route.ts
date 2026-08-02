@@ -51,7 +51,10 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Failed to create search" },
+      {
+        error:
+          error instanceof Error ? error.message : "Failed to create search",
+      },
       { status: 500 },
     );
   }

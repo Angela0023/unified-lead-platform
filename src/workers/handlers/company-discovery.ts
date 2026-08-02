@@ -71,7 +71,9 @@ export async function handleCompanyDiscovery(searchId: string) {
         job.id,
         Math.round((stored / companies.length) * 100),
       );
-      console.log(`[pipeline] Discovery checkpoint: ${stored}/${companies.length} companies`);
+      console.log(
+        `[pipeline] Discovery checkpoint: ${stored}/${companies.length} companies`,
+      );
     }
 
     await updateSearchProgress(searchId, "company-discovery", 15, {

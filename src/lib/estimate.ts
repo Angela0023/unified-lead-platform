@@ -69,7 +69,9 @@ export async function estimateCompanyCount(
   return { count: 500, source: "estimated" };
 }
 
-export async function buildEstimate(input: SearchInput): Promise<SearchEstimate> {
+export async function buildEstimate(
+  input: SearchInput,
+): Promise<SearchEstimate> {
   const { count: companies, source } = await estimateCompanyCount(input);
 
   const validated = Math.round(companies * VALIDATED_RATE);
@@ -87,10 +89,8 @@ export async function buildEstimate(input: SearchInput): Promise<SearchEstimate>
     },
     {
       phase: "Phase 2: Company Validation",
-      costMin:
-        companies * PRICE.scrape.min + companies * PRICE.deepseek.min,
-      costMax:
-        companies * PRICE.scrape.max + companies * PRICE.deepseek.max,
+      costMin: companies * PRICE.scrape.min + companies * PRICE.deepseek.min,
+      costMax: companies * PRICE.scrape.max + companies * PRICE.deepseek.max,
       timeMinutes: clamp(
         companies * TIME_BASE.validation.perCompanyMin,
         TIME_BASE.validation.clampMin,
@@ -135,10 +135,7 @@ export async function buildEstimate(input: SearchInput): Promise<SearchEstimate>
 
   const costMin = phases.reduce((sum, phase) => sum + phase.costMin, 0);
   const costMax = phases.reduce((sum, phase) => sum + phase.costMax, 0);
-  const timeMinutes = phases.reduce(
-    (sum, phase) => sum + phase.timeMinutes,
-    0,
-  );
+  const timeMinutes = phases.reduce((sum, phase) => sum + phase.timeMinutes, 0);
 
   return {
     companiesExpected: companies,

@@ -30,15 +30,6 @@ function fail(
   return { key, label, status: "fail", message, detail };
 }
 
-function unknown(
-  key: string,
-  label: string,
-  message: string,
-  detail?: string,
-): PreflightCheck {
-  return { key, label, status: "unknown", message, detail };
-}
-
 async function checkDatabase(): Promise<PreflightCheck> {
   try {
     await prisma.$queryRaw`SELECT 1`;
@@ -54,10 +45,13 @@ async function checkDatabase(): Promise<PreflightCheck> {
 }
 
 async function checkRedis(): Promise<PreflightCheck> {
-  const connection = new IORedis(process.env.REDIS_URL ?? "redis://localhost:6379", {
-    maxRetriesPerRequest: null,
-    connectTimeout: 5000,
-  });
+  const connection = new IORedis(
+    process.env.REDIS_URL ?? "redis://localhost:6379",
+    {
+      maxRetriesPerRequest: null,
+      connectTimeout: 5000,
+    },
+  );
   try {
     await connection.ping();
     return ok("redis", "Redis", "Connected");
@@ -74,10 +68,13 @@ async function checkRedis(): Promise<PreflightCheck> {
 }
 
 async function checkWorker(): Promise<PreflightCheck> {
-  const connection = new IORedis(process.env.REDIS_URL ?? "redis://localhost:6379", {
-    maxRetriesPerRequest: null,
-    connectTimeout: 5000,
-  });
+  const connection = new IORedis(
+    process.env.REDIS_URL ?? "redis://localhost:6379",
+    {
+      maxRetriesPerRequest: null,
+      connectTimeout: 5000,
+    },
+  );
   try {
     const heartbeat = await connection.get(WORKER_HEARTBEAT_KEY);
     if (!heartbeat) {
@@ -117,7 +114,12 @@ async function checkWorker(): Promise<PreflightCheck> {
 
 async function checkApollo(): Promise<PreflightCheck> {
   if (config.demoMode) {
-    return ok("apollo", "Apollo", "Demo mode (simulated)", "No API key required");
+    return ok(
+      "apollo",
+      "Apollo",
+      "Demo mode (simulated)",
+      "No API key required",
+    );
   }
   if (!config.apolloApiKey) {
     return fail("apollo", "Apollo", "APOLLO_API_KEY not set");
@@ -131,13 +133,20 @@ async function checkApollo(): Promise<PreflightCheck> {
     "apollo",
     "Apollo",
     "Authenticated",
-    credits.credits !== null ? `${credits.credits} credits remaining` : undefined,
+    credits.credits !== null
+      ? `${credits.credits} credits remaining`
+      : undefined,
   );
 }
 
 async function checkDeepSeek(): Promise<PreflightCheck> {
   if (config.demoMode) {
-    return ok("deepseek", "DeepSeek", "Demo mode (simulated)", "No API key required");
+    return ok(
+      "deepseek",
+      "DeepSeek",
+      "Demo mode (simulated)",
+      "No API key required",
+    );
   }
   if (!config.deepseekApiKey) {
     return fail("deepseek", "DeepSeek", "DEEPSEEK_API_KEY not set");
@@ -151,27 +160,41 @@ async function checkDeepSeek(): Promise<PreflightCheck> {
     "deepseek",
     "DeepSeek",
     "Authenticated",
-    balance.balance !== null ? `Balance: $${balance.balance.toFixed(2)}` : undefined,
+    balance.balance !== null
+      ? `Balance: $${balance.balance.toFixed(2)}`
+      : undefined,
   );
 }
 
 async function checkFirecrawl(): Promise<PreflightCheck> {
   if (config.demoMode) {
-    return ok("firecrawl", "Firecrawl", "Demo mode (simulated)", "No API key required");
+    return ok(
+      "firecrawl",
+      "Firecrawl",
+      "Demo mode (simulated)",
+      "No API key required",
+    );
   }
   if (!config.firecrawlApiKey) {
     return fail("firecrawl", "Firecrawl", "FIRECRAWL_API_KEY not set");
   }
   const auth = await firecrawlClient.testConnection();
   if (!auth.authenticated) {
-    return fail("firecrawl", "Firecrawl", "Authentication failed", auth.message);
+    return fail(
+      "firecrawl",
+      "Firecrawl",
+      "Authentication failed",
+      auth.message,
+    );
   }
   const credits = await firecrawlClient.getCreditsRemaining();
   return ok(
     "firecrawl",
     "Firecrawl",
     "Authenticated",
-    credits.credits !== null ? `${credits.credits} credits remaining` : undefined,
+    credits.credits !== null
+      ? `${credits.credits} credits remaining`
+      : undefined,
   );
 }
 
@@ -205,7 +228,9 @@ async function checkMillionVerifier(): Promise<PreflightCheck> {
     "million-verifier",
     "Million Verifier",
     "Authenticated",
-    credits.credits !== null ? `${credits.credits} credits remaining` : undefined,
+    credits.credits !== null
+      ? `${credits.credits} credits remaining`
+      : undefined,
   );
 }
 

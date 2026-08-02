@@ -1,4 +1,8 @@
-import { INDUSTRY_OPTIONS, LOCATION_OPTIONS, COMPANY_SIZE_OPTIONS } from "./constants";
+import {
+  INDUSTRY_OPTIONS,
+  LOCATION_OPTIONS,
+  COMPANY_SIZE_OPTIONS,
+} from "./constants";
 import type { SearchInput } from "./types";
 
 const MIN_ICP_LENGTH = 20;

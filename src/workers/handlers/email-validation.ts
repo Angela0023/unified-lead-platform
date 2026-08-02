@@ -20,7 +20,11 @@ export async function handleEmailValidation(searchId: string) {
 
   try {
     const contacts = await prisma.contact.findMany({
-      where: { company: { searchId }, status: "EMAIL_FOUND", email: { not: null } },
+      where: {
+        company: { searchId },
+        status: "EMAIL_FOUND",
+        email: { not: null },
+      },
       orderBy: { createdAt: "asc" },
     });
 
@@ -46,7 +50,9 @@ export async function handleEmailValidation(searchId: string) {
         },
       });
       await completePhaseJob(job.id);
-      console.log(`[pipeline] Search ${searchId} completed (0 emails to validate)`);
+      console.log(
+        `[pipeline] Search ${searchId} completed (0 emails to validate)`,
+      );
       return;
     }
 
@@ -56,7 +62,10 @@ export async function handleEmailValidation(searchId: string) {
     const batch = await mvClient.pollBatch(batchId);
 
     const verdictByEmail = new Map<string, EmailVerdict>(
-      batch.results.map((result) => [result.email.toLowerCase(), result.verdict]),
+      batch.results.map((result) => [
+        result.email.toLowerCase(),
+        result.verdict,
+      ]),
     );
 
     let valid = 0;

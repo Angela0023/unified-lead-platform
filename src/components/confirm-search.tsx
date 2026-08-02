@@ -7,12 +7,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PreflightResults } from "@/components/preflight-results";
 import { CostEstimate } from "@/components/cost-estimate";
 import type { PreflightResult, SearchInput } from "@/lib/types";
@@ -62,7 +57,9 @@ export function ConfirmSearch() {
       toast.success("Search started! Track progress below.");
       router.push(`/search/${data.searchId}/progress`);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to start search");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to start search",
+      );
       setIsStarting(false);
     }
   }

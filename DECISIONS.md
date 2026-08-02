@@ -425,6 +425,38 @@ Each decision follows this structure:
 
 ---
 
+### Decision ID: DEV-006
+**Date:** 2026-08-02
+**Context:** Angela wants to see the product working, but the 4 MVP API keys (Apollo, DeepSeek, Firecrawl, Million Verifier) are not available yet.
+**Decision:** Implement a Demo Mode (DEMO_MODE=true env var) where every integration client returns simulated, deterministic data with small artificial delays.
+**Rationale:** Lets the full pipeline (discovery → validation → contacts → enrichment → verification) be exercised end-to-end with zero cost and no keys, so the product can be demonstrated immediately. Demo mode never touches real APIs or real money.
+**Alternatives Considered:** Block on API keys (slows demo); hardcode fake data in UI only (doesn't test the pipeline); mock framework (extra dependency).
+**Consequences:** ✅ Product fully demonstrable today; ✅ Same code path as production (demo providers swap inside each client); ⚠️ Demo numbers are simulated - real quality metrics require real keys; ⚠️ Must flip DEMO_MODE=false when real keys are configured.
+**Status:** Active (temporary development aid; flip off at deployment)
+**Lesson Learned:** A demo-data layer inside the integration clients is a cheap way to keep the whole system testable without credentials.
+
+---
+
+### Decision ID: DEV-007
+**Date:** 2026-08-02
+**Context:** Next.js loads `.env.local`, but the standalone worker process (tsx) and CLI scripts only loaded `.env` via `dotenv/config`.
+**Decision:** Worker and scripts now load `.env.local` first, then fall back to `.env` (dotenv does not override existing values, so `.env.local` wins).
+**Rationale:** One source of truth for local configuration (`.env.local`), matching Next.js behavior; production workers get env vars from the platform (no files), so nothing changes there.
+**Consequences:** ✅ No duplicated env files to keep in sync; ✅ Prisma CLI continues to use `.env` as before.
+**Status:** Active
+
+---
+
+### Decision ID: DEV-008
+**Date:** 2026-08-02
+**Context:** Pipeline progress percentages are defined per phase in WORKFLOW.md (discovery 15%, validation 45%, contacts 65%, enrichment 85%, validation 100%).
+**Decision:** Central phase metadata (labels, descriptions, cumulative percent ranges) lives in src/lib/constants.ts PHASES; workers compute per-item progress within each phase's range.
+**Rationale:** Single source of truth for phase labels and progress mapping shared by workers, progress UI, and pipeline helpers; avoids drift between stages.
+**Consequences:** ✅ Consistent progress display everywhere; ✅ Adding a phase later = one file.
+**Status:** Active
+
+---
+
 ## Lessons Learned (To Be Added During Development)
 
 ### Lesson Template
@@ -453,7 +485,7 @@ Each decision follows this structure:
 ---
 
 **Last Updated:** 2026-08-02
-**Total Decisions:** 17
-**Active:** 16
+**Total Decisions:** 20
+**Active:** 19
 **Deferred:** 1
 **Superseded:** 0

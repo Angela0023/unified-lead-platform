@@ -10,5 +10,8 @@ export class ApolloError extends HttpError {
 
 /** True when the API key is missing or rejected by Apollo. */
 export function isAuthError(error: unknown): boolean {
-  return error instanceof ApolloError && (error.status === 401 || error.status === 403);
+  return (
+    error instanceof ApolloError &&
+    (error.status === 401 || error.status === 403)
+  );
 }

@@ -1,4 +1,6 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+dotenv.config();
 import { Queue } from "bullmq";
 import { QUEUE_NAME, createRedisConnection } from "../lib/queue";
 

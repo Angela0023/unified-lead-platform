@@ -82,7 +82,10 @@ export async function enrichEmails(searchId: string) {
 
       // CHECKPOINT after every 50 contacts
       const processed = Math.min(i + 50, contacts.length);
-      await updateJobProgress(job.id, Math.round((processed / contacts.length) * 100));
+      await updateJobProgress(
+        job.id,
+        Math.round((processed / contacts.length) * 100),
+      );
       await updateSearchProgress(
         searchId,
         "email-enrichment",

@@ -1,12 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -48,7 +43,9 @@ export function CostEstimate({ input }: CostEstimateProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Cost & Time Estimate (Stage 2)</CardTitle>
+          <CardTitle className="text-base">
+            Cost & Time Estimate (Stage 2)
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <Skeleton className="h-8 w-full" />
@@ -74,7 +71,9 @@ export function CostEstimate({ input }: CostEstimateProps) {
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-base">Cost & Time Estimate (Stage 2)</CardTitle>
+        <CardTitle className="text-base">
+          Cost & Time Estimate (Stage 2)
+        </CardTitle>
         {estimate.source === "estimated" ? (
           <Badge variant="secondary">Estimated volume</Badge>
         ) : (
@@ -90,16 +89,16 @@ export function CostEstimate({ input }: CostEstimateProps) {
             </p>
           </div>
           <div className="rounded-md border p-3">
-            <p className="text-xs text-muted-foreground">Estimated Final Leads</p>
+            <p className="text-xs text-muted-foreground">
+              Estimated Final Leads
+            </p>
             <p className="text-xl font-semibold">
               {estimate.leadsExpectedMin}-{estimate.leadsExpectedMax}
             </p>
           </div>
           <div className="rounded-md border p-3">
             <p className="text-xs text-muted-foreground">Estimated Time</p>
-            <p className="text-xl font-semibold">
-              {estimate.timeMinutes} min
-            </p>
+            <p className="text-xl font-semibold">{estimate.timeMinutes} min</p>
           </div>
         </div>
 
@@ -132,7 +131,8 @@ export function CostEstimate({ input }: CostEstimateProps) {
                 Total Estimated Cost
               </TableCell>
               <TableCell className="text-right font-semibold">
-                {formatMoney(estimate.costMin)} - {formatMoney(estimate.costMax)}
+                {formatMoney(estimate.costMin)} -{" "}
+                {formatMoney(estimate.costMax)}
               </TableCell>
               <TableCell className="text-right font-semibold">
                 ~{estimate.timeMinutes} min
@@ -154,7 +154,8 @@ export function CostEstimate({ input }: CostEstimateProps) {
               DeepSeek: ~{estimate.credits.deepseek.toLocaleString()}
             </Badge>
             <Badge variant="outline">
-              Million Verifier: ~{estimate.credits.millionVerifier.toLocaleString()}
+              Million Verifier: ~
+              {estimate.credits.millionVerifier.toLocaleString()}
             </Badge>
           </div>
         </div>

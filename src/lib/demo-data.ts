@@ -41,23 +41,84 @@ function mulberry32(seed: number): () => number {
 }
 
 const NAME_PREFIXES = [
-  "Nimbus", "Quantum", "Vertex", "Orbit", "Cobalt", "Lumina", "Atlas",
-  "Stratus", "Nova", "Pulse", "Meridian", "Helix", "Apex", "Fusion",
-  "Zenith", "Cascade", "Incline", "Relay", "Signal", "Vector",
+  "Nimbus",
+  "Quantum",
+  "Vertex",
+  "Orbit",
+  "Cobalt",
+  "Lumina",
+  "Atlas",
+  "Stratus",
+  "Nova",
+  "Pulse",
+  "Meridian",
+  "Helix",
+  "Apex",
+  "Fusion",
+  "Zenith",
+  "Cascade",
+  "Incline",
+  "Relay",
+  "Signal",
+  "Vector",
 ];
 const NAME_SUFFIXES = [
-  "Systems", "Labs", "Technologies", "Software", "Analytics", "Digital",
-  "Solutions", "Networks", "Data", "Platforms", "Cloud", "Intelligence",
+  "Systems",
+  "Labs",
+  "Technologies",
+  "Software",
+  "Analytics",
+  "Digital",
+  "Solutions",
+  "Networks",
+  "Data",
+  "Platforms",
+  "Cloud",
+  "Intelligence",
 ];
 const FIRST_NAMES = [
-  "James", "Sarah", "Michael", "Emma", "David", "Olivia", "Daniel",
-  "Sophia", "Matthew", "Isabella", "Andrew", "Mia", "Christopher", "Charlotte",
-  "Joshua", "Amelia", "Ryan", "Emily", "Nathan", "Grace",
+  "James",
+  "Sarah",
+  "Michael",
+  "Emma",
+  "David",
+  "Olivia",
+  "Daniel",
+  "Sophia",
+  "Matthew",
+  "Isabella",
+  "Andrew",
+  "Mia",
+  "Christopher",
+  "Charlotte",
+  "Joshua",
+  "Amelia",
+  "Ryan",
+  "Emily",
+  "Nathan",
+  "Grace",
 ];
 const LAST_NAMES = [
-  "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller",
-  "Davis", "Rodriguez", "Martinez", "Anderson", "Taylor", "Thomas", "Moore",
-  "Jackson", "Martin", "Lee", "Thompson", "White", "Harris",
+  "Smith",
+  "Johnson",
+  "Williams",
+  "Brown",
+  "Jones",
+  "Garcia",
+  "Miller",
+  "Davis",
+  "Rodriguez",
+  "Martinez",
+  "Anderson",
+  "Taylor",
+  "Thomas",
+  "Moore",
+  "Jackson",
+  "Martin",
+  "Lee",
+  "Thompson",
+  "White",
+  "Harris",
 ];
 
 function makeCompanyName(seed: number): string {
@@ -194,11 +255,12 @@ export const demo = {
     const bounds = params.employeeCountMin
       ? { min: params.employeeCountMin, max: params.employeeCountMax ?? 500 }
       : COMPANY_SIZE_BOUNDS["51-200"];
-    const industry =
-      params.industries[0] ?? "Software";
+    const industry = params.industries[0] ?? "Software";
     const location = params.locations[0] ?? "United States";
     const companies = Array.from({ length: perPage }, (_, index) => {
-      const seed = hashString(`${industry}-${location}-${index}-${params.page ?? 1}`);
+      const seed = hashString(
+        `${industry}-${location}-${index}-${params.page ?? 1}`,
+      );
       const name = makeCompanyName(seed);
       const random = mulberry32(seed);
       const size =
@@ -235,9 +297,10 @@ export const demo = {
     const count = 1 + Math.floor(random() * limit);
     const titleVariants = [
       params.title,
-      `VP Engineering`,
-      `Head of ${params.title}`,
-      `Chief Technology Officer`,
+      "VP Engineering",
+      "Chief Technology Officer",
+      "Head of Engineering",
+      "VP Product",
     ];
     return Array.from({ length: count }, (_, index) => {
       const personSeed = orgSeed + index * 7919;
@@ -266,9 +329,10 @@ export const demo = {
     const orgSeed = Number(parts[0] ?? 0);
     const index = Number(parts[1] ?? 0);
     const domain = toDomain(makeCompanyName(orgSeed));
+    // Derive the same name as apolloContacts for this contact
     const personSeed = orgSeed + index * 7919;
-    const name = `${FIRST_NAMES[personSeed % FIRST_NAMES.length]} ${
-      LAST_NAMES[(personSeed * 7) % LAST_NAMES.length]
+    const name = `${FIRST_NAMES[Math.floor(mulberry32(personSeed)() * FIRST_NAMES.length)]} ${
+      LAST_NAMES[Math.floor(mulberry32(personSeed + 1)() * LAST_NAMES.length)]
     }`;
     return makeEmail(name, domain);
   },
@@ -286,11 +350,15 @@ export const demo = {
     else if (roll < 0.55) score = 3;
     else if (roll < 0.8) score = 4;
     else score = 5;
-    const industry = company.scrapedContent.split(" is a ")[1]?.split(" ")[0] ?? "software";
+    const industry =
+      company.scrapedContent.split(" is a ")[1]?.split(" ")[0] ?? "software";
     return {
       score,
       reasoning: makeReasoning(score, company.name, industry),
-      conflicts: random() < 0.2 ? ["Website employee count differs from Apollo data"] : [],
+      conflicts:
+        random() < 0.2
+          ? ["Website employee count differs from Apollo data"]
+          : [],
     };
   },
 

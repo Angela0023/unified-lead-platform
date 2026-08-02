@@ -83,7 +83,10 @@ export async function handleContactDiscovery(searchId: string) {
 
       // CHECKPOINT after every 50 companies
       const processed = Math.min(i + 50, companies.length);
-      await updateJobProgress(job.id, Math.round((processed / companies.length) * 100));
+      await updateJobProgress(
+        job.id,
+        Math.round((processed / companies.length) * 100),
+      );
       await updateSearchProgress(
         searchId,
         "contact-discovery",
@@ -106,7 +109,10 @@ export async function handleContactDiscovery(searchId: string) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Contact discovery failed";
-    console.error(`[pipeline] Contact discovery failed for ${searchId}:`, error);
+    console.error(
+      `[pipeline] Contact discovery failed for ${searchId}:`,
+      error,
+    );
     await failPhaseJob(job.id, message);
     await failSearch(searchId, message);
     throw error;

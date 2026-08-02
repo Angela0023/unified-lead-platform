@@ -1,11 +1,17 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+// Load .env.local first (Next.js convention); fall back to .env
+dotenv.config({ path: ".env.local" });
+dotenv.config();
 import { Worker } from "bullmq";
 import {
   QUEUE_NAME,
   createRedisConnection,
   type LeadJobData,
 } from "../lib/queue";
-import { WORKER_HEARTBEAT_KEY, WORKER_HEARTBEAT_TTL_SECONDS } from "../lib/preflight";
+import {
+  WORKER_HEARTBEAT_KEY,
+  WORKER_HEARTBEAT_TTL_SECONDS,
+} from "../lib/preflight";
 import { handleJob } from "./router";
 
 /**
@@ -18,13 +24,9 @@ import { handleJob } from "./router";
 
 const connection = createRedisConnection();
 
-const worker = new Worker<LeadJobData>(
-  QUEUE_NAME,
-  (job) => handleJob(job),
-  {
-    connection,
-  },
-);
+const worker = new Worker<LeadJobData>(QUEUE_NAME, (job) => handleJob(job), {
+  connection,
+});
 
 const heartbeatTimer = setInterval(async () => {
   try {

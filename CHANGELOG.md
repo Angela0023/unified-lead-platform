@@ -40,6 +40,53 @@
 
 ---
 
+## [0.3.0] - 2026-08-02
+
+### Added
+- **Stage 0: Search form UI** (/search) - industry/location multi-selects, company size, target role, ICP prompt, Gate 0 validation, 4 example prompts
+- **Stage 1: Pre-flight checks** - GET /api/preflight (database, Redis, worker heartbeat, all 4 API connections + credit balances)
+- **Stage 2: Cost & time estimation** - POST /api/estimates with per-phase breakdown, credit usage, approval UI on /search/confirm
+- **Stage 3: Company discovery** - apolloClient.searchCompanies(), 'company-discovery' worker handler, checkpointed batch inserts
+- **Stage 4: Company validation** - firecrawlClient.scrape(), deepseekClient.validate() with prompt template, score 1-5 filtering (1=REJECTED, 2-5=VALIDATED), conflicts stored, checkpoints every 50
+- **Stage 5: Contact discovery** - apolloClient.findContacts(), de-duplication, max 2 contacts per company
+- **Stage 6: Email enrichment** - apolloClient.getEmail(), immediate saves, checkpoints every 50, resumeEmailEnrichment() crash recovery
+- **Stage 7: Email validation** - mvClient.uploadBatch()/pollBatch(), VALID/RISKY/INVALID categorization, search auto-completes
+- **Stage 9: Reporting** - results API, results table UI (filtering), CSV export (GET /api/searches/:id/download)
+- **Progress tracking UI** - /search/:id/progress with 4s polling, phase checklist, live stats, estimated completion
+- **POST /api/searches** (create + queue), **GET /api/searches** (recent history on landing page)
+- **Modular integration clients** per ARCHITECTURE.md: apollo, deepseek, firecrawl, million-verifier (client/types/errors each)
+- **Shared HTTP helper** - timeouts, retryable error normalization, exponential backoff (1s/2s/4s)
+- **Demo Mode** (DEMO_MODE=true) - simulated but deterministic data for all integrations so the full product runs without API keys
+- Additive migration: Search.estimatedCost/estimatedTimeMinutes, Company.apolloId, Contact.apolloId
+
+### Changed
+- Worker now emits a Redis heartbeat (10s interval) for pre-flight health checks
+- Landing page shows recent searches
+- README status updated to MVP Development
+
+### Fixed
+- Redis connection leak in enqueueSearchJob (queue/connection now closed after use)
+- Demo data quality (title variants, email/contact name consistency)
+- TanStack Query refetchInterval typing
+
+### Testing
+- Full end-to-end demo pipeline verified: 15 companies → 12 validated → 16 contacts → 10 emails → 5 valid / 4 risky / 1 invalid, search COMPLETED
+- All pages return 200 (/, /search, /search/confirm, /search/:id/progress, /search/:id/results)
+- Preflight: all checks OK incl. worker heartbeat
+- CSV export verified; estimates API verified
+- lint + type-check + production build pass
+
+### Blocked / Pending
+- Real API key testing (needs Apollo, DeepSeek, Firecrawl, Million Verifier keys from Angela)
+- Production deployment (needs Vercel/Supabase/Railway accounts - see DEPLOYMENT.md)
+- Sonnet review before Angela uses it in production
+
+### Next Steps
+- Sprint 14 deployment per DEPLOYMENT.md
+- Sonnet final verification
+
+---
+
 ## [0.2.0] - 2026-08-02
 
 ### Added
@@ -237,5 +284,5 @@ Use this format for future entries:
 ---
 
 **Last Updated:** 2026-08-02
-**Current Version:** 0.2.0 (Environment Setup Complete)
-**Next Version:** 0.3.0 (Search Form UI)
+**Current Version:** 0.3.0 (MVP Feature Complete - Stages 0-7 + 9)
+**Next Version:** 1.0.0 (MVP Release after Sonnet review + deployment)

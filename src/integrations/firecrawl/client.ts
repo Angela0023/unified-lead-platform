@@ -2,11 +2,7 @@ import { config } from "@/lib/config";
 import { fetchJson, retryWithBackoff } from "@/lib/http";
 import { demo } from "@/lib/demo-data";
 import { FirecrawlError } from "./errors";
-import type {
-  AuthCheckResult,
-  CreditsResult,
-  ScrapeResult,
-} from "./types";
+import type { AuthCheckResult, CreditsResult, ScrapeResult } from "./types";
 
 const BASE_URL = "https://api.firecrawl.dev/v1";
 

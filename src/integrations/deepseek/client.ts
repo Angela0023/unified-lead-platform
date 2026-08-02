@@ -2,11 +2,7 @@ import { config } from "@/lib/config";
 import { fetchJson, retryWithBackoff } from "@/lib/http";
 import { demo } from "@/lib/demo-data";
 import { DeepSeekError } from "./errors";
-import type {
-  AuthCheckResult,
-  BalanceResult,
-  ValidationResult,
-} from "./types";
+import type { AuthCheckResult, BalanceResult, ValidationResult } from "./types";
 
 const BASE_URL = "https://api.deepseek.com";
 
@@ -15,11 +11,14 @@ const BASE_URL = "https://api.deepseek.com";
  * The model receives scraped website content plus the user's ICP and
  * returns a JSON score (1-5), reasoning, and detected conflicts.
  */
-export function buildValidationPrompt(company: {
-  name: string;
-  website: string;
-  scrapedContent: string;
-}, icpPrompt: string): string {
+export function buildValidationPrompt(
+  company: {
+    name: string;
+    website: string;
+    scrapedContent: string;
+  },
+  icpPrompt: string,
+): string {
   return `You are evaluating companies against an ideal customer profile (ICP).
 
 Company Information:
@@ -68,9 +67,7 @@ export const deepseekClient = {
         },
         body: JSON.stringify({
           model: "deepseek-chat",
-          messages: [
-            { role: "user", content: "Reply with the word OK" },
-          ],
+          messages: [{ role: "user", content: "Reply with the word OK" }],
           max_tokens: 5,
         }),
         timeoutMs: 20_000,
@@ -164,8 +161,7 @@ function parseValidationResult(
     const score = Math.min(5, Math.max(1, Number(parsed.score) || 1));
     return {
       score,
-      reasoning:
-        parsed.reasoning ?? "No reasoning provided",
+      reasoning: parsed.reasoning ?? "No reasoning provided",
       conflicts: Array.isArray(parsed.conflicts)
         ? parsed.conflicts.map(String)
         : [],

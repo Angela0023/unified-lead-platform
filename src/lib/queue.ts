@@ -38,12 +38,12 @@ export async function enqueueSearchJob(
   jobName: JobName,
   searchId: string,
 ): Promise<void> {
-  const queue = new Queue<LeadJobData>(QUEUE_NAME, {
-    connection: createRedisConnection(),
-  });
+  const connection = createRedisConnection();
+  const queue = new Queue<LeadJobData>(QUEUE_NAME, { connection });
   try {
     await queue.add(jobName, { searchId });
   } finally {
     await queue.close();
+    await connection.quit();
   }
 }

@@ -99,7 +99,10 @@ export async function handleCompanyValidation(searchId: string) {
 
       // CHECKPOINT after every 50 companies
       const processed = Math.min(i + 50, companies.length);
-      await updateJobProgress(job.id, Math.round((processed / companies.length) * 100));
+      await updateJobProgress(
+        job.id,
+        Math.round((processed / companies.length) * 100),
+      );
       await updateSearchProgress(
         searchId,
         "company-validation",
@@ -111,12 +114,9 @@ export async function handleCompanyValidation(searchId: string) {
       );
     }
 
-    await updateSearchProgress(
-      searchId,
-      "company-validation",
-      45,
-      { companiesValidated: validated },
-    );
+    await updateSearchProgress(searchId, "company-validation", 45, {
+      companiesValidated: validated,
+    });
     await completePhaseJob(job.id);
     await enqueueNextPhase("company-validation", searchId);
     console.log(

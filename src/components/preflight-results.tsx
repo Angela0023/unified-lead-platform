@@ -18,9 +18,18 @@ const CHECK_ICONS: Record<
   string,
   { icon: React.ReactNode; className: string }
 > = {
-  ok: { icon: <CheckCircle2 className="h-4 w-4" />, className: "text-emerald-500" },
-  fail: { icon: <CircleX className="h-4 w-4" />, className: "text-destructive" },
-  unknown: { icon: <CircleX className="h-4 w-4" />, className: "text-muted-foreground" },
+  ok: {
+    icon: <CheckCircle2 className="h-4 w-4" />,
+    className: "text-emerald-500",
+  },
+  fail: {
+    icon: <CircleX className="h-4 w-4" />,
+    className: "text-destructive",
+  },
+  unknown: {
+    icon: <CircleX className="h-4 w-4" />,
+    className: "text-muted-foreground",
+  },
 };
 
 export function PreflightResults({ onComplete }: PreflightResultsProps) {
@@ -50,7 +59,9 @@ export function PreflightResults({ onComplete }: PreflightResultsProps) {
           onClick={() => void query.refetch()}
           disabled={query.isFetching}
         >
-          <RefreshCw className={`h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`} />
+          <RefreshCw
+            className={`h-4 w-4 ${query.isFetching ? "animate-spin" : ""}`}
+          />
           Re-run
         </Button>
       </CardHeader>

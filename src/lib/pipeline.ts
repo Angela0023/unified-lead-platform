@@ -38,7 +38,11 @@ export async function startPhaseJob(searchId: string, jobType: JobName) {
 export async function completePhaseJob(jobId: string) {
   await prisma.job.update({
     where: { id: jobId },
-    data: { status: "COMPLETED", progressPercent: 100, completedAt: new Date() },
+    data: {
+      status: "COMPLETED",
+      progressPercent: 100,
+      completedAt: new Date(),
+    },
   });
 }
 
