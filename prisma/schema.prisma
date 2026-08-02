@@ -1,0 +1,152 @@
+// Unified Lead Platform - Prisma Schema
+// Source: ARCHITECTURE.md "Database Schema" section
+// Stack: PostgreSQL via Supabase (production) / local Homebrew PostgreSQL (development)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Search {
+  id                 String       @id @default(uuid())
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+  completedAt        DateTime?
+
+  // Input
+  industry           String[]
+  companySize        String // e.g., "50-200"
+  location           String[]
+  targetRole         String
+  icpPrompt          String       @db.Text
+
+  // Status
+  status             SearchStatus @default(PENDING)
+  currentPhase       String? // "Company Discovery", "Validation", etc.
+  progressPercent    Int          @default(0)
+  errorMessage       String?      @db.Text
+
+  // Results Summary
+  companiesFound     Int          @default(0)
+  companiesValidated Int          @default(0)
+  contactsFound      Int          @default(0)
+  emailsFound        Int          @default(0)
+  emailsValid        Int          @default(0)
+
+  // Relations
+  companies          Company[]
+  jobs               Job[]
+}
+
+enum SearchStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+model Company {
+  id             String        @id @default(uuid())
+  searchId       String
+  search         Search        @relation(fields: [searchId], references: [id])
+
+  // Basic Info
+  name           String
+  website        String
+  industry       String?
+  size           Int?
+  location       String?
+
+  // Validation
+  score          Int? // 1-5
+  scoreReasoning String?       @db.Text
+  scrapedData    Json? // Full website scrape result
+
+  // Status
+  status         CompanyStatus @default(DISCOVERED)
+  errorMessage   String?
+
+  // Relations
+  contacts       Contact[]
+
+  createdAt      DateTime      @default(now())
+
+  @@index([searchId])
+  @@index([status])
+}
+
+enum CompanyStatus {
+  DISCOVERED
+  VALIDATED
+  REJECTED
+  FAILED
+}
+
+model Contact {
+  id           String        @id @default(uuid())
+  companyId    String
+  company      Company       @relation(fields: [companyId], references: [id])
+
+  // Basic Info
+  name         String
+  title        String
+  linkedinUrl  String?
+
+  // Email
+  email        String?
+  emailStatus  EmailStatus?
+  emailSource  String? // "apollo", "prospeo", "expandi"
+
+  // Status
+  status       ContactStatus @default(DISCOVERED)
+  errorMessage String?
+
+  createdAt    DateTime      @default(now())
+
+  @@index([companyId])
+  @@index([status])
+  @@index([emailStatus])
+}
+
+enum EmailStatus {
+  VALID
+  INVALID
+  RISKY
+  UNKNOWN
+}
+
+enum ContactStatus {
+  DISCOVERED
+  EMAIL_FOUND
+  EMAIL_VALIDATED
+  FAILED
+}
+
+model Job {
+  id              String    @id @default(uuid())
+  searchId        String
+  search          Search    @relation(fields: [searchId], references: [id])
+
+  jobType         String // "company-discovery", "validation", etc.
+  status          JobStatus @default(PENDING)
+  progressPercent Int       @default(0)
+  errorMessage    String?   @db.Text
+
+  createdAt       DateTime  @default(now())
+  startedAt       DateTime?
+  completedAt     DateTime?
+
+  @@index([searchId])
+  @@index([status])
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
