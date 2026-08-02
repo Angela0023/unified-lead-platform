@@ -1,0 +1,139 @@
+# Unified Lead Platform - .gitignore
+# SECURITY: Prevent sensitive data from being committed to git
+
+# ========================================
+# CRITICAL: Environment Variables & Secrets
+# ========================================
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+
+# API Keys (if accidentally created as separate files)
+*api-key*
+*secret*
+*credentials*
+*.pem
+*.key
+
+# ========================================
+# Dependencies
+# ========================================
+node_modules/
+/.pnp
+.pnp.js
+
+# ========================================
+# Next.js
+# ========================================
+/.next/
+/out/
+/build/
+
+# Production
+/dist/
+
+# ========================================
+# Testing
+# ========================================
+/coverage/
+*.lcov
+
+# ========================================
+# Misc
+# ========================================
+.DS_Store
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Local env files (Vercel)
+.env*.local
+
+# ========================================
+# IDEs and Editors
+# ========================================
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.swp
+*.swo
+*.swn
+*.bak
+*~
+
+# ========================================
+# OS Generated
+# ========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ========================================
+# Database
+# ========================================
+*.db
+*.sqlite
+*.sqlite3
+prisma/dev.db
+prisma/dev.db-journal
+
+# Migrations (only if you want to exclude them)
+# prisma/migrations/
+
+# ========================================
+# Logs
+# ========================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# ========================================
+# Temporary Files
+# ========================================
+tmp/
+temp/
+*.tmp
+
+# ========================================
+# Build Artifacts
+# ========================================
+*.tsbuildinfo
+next-env.d.ts
+
+# ========================================
+# User-Specific Data
+# ========================================
+# Search exports (if users download CSVs locally)
+/exports/
+/downloads/
+
+# ========================================
+# Development Tools
+# ========================================
+.vercel
+.turbo
+
+# ========================================
+# DO NOT IGNORE
+# ========================================
+# These SHOULD be committed:
+# - package.json
+# - package-lock.json / pnpm-lock.yaml / yarn.lock
+# - .env.example (example env vars WITHOUT actual values)
+# - README.md
+# - All source code
+# - All documentation
