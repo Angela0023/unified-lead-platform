@@ -11,6 +11,8 @@ export interface ApolloCompany {
   state?: string;
   country?: string;
   organizationSize?: string;
+  /** Computed display location ("City, State, Country"). */
+  location?: string;
 }
 
 export interface ApolloPerson {

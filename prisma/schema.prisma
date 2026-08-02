@@ -30,6 +30,10 @@ model Search {
   progressPercent    Int          @default(0)
   errorMessage       String?      @db.Text
 
+  // Estimate (set at approval time, Stage 2)
+  estimatedCost      Float?
+  estimatedTimeMinutes Int?
+
   // Results Summary
   companiesFound     Int          @default(0)
   companiesValidated Int          @default(0)
@@ -60,6 +64,7 @@ model Company {
   industry       String?
   size           Int?
   location       String?
+  apolloId       String? // Apollo organization id (contact discovery)
 
   // Validation
   score          Int? // 1-5
@@ -95,6 +100,7 @@ model Contact {
   name         String
   title        String
   linkedinUrl  String?
+  apolloId     String? // Apollo person id (email enrichment)
 
   // Email
   email        String?
