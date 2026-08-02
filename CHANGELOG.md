@@ -9,9 +9,34 @@
 
 ## [Unreleased]
 
-### In Progress
+### Added
 
-- Initial documentation and planning
+- **DEPLOYMENT.md** - Comprehensive deployment guide for Sprint 14
+  - Complete Vercel setup instructions with screenshots guidance
+  - All 7 API keys documented (Apollo, DeepSeek, Firecrawl, Million Verifier, Prospeo, Expandi, BounceBan)
+  - Supabase database setup and migration steps
+  - Railway Redis + background workers setup
+  - Custom domain configuration (leads.corsyx.com via Cloudflare DNS)
+  - SSL certificate setup (automatic via Vercel)
+  - Troubleshooting guide for common deployment issues
+  - Monitoring, backup, and disaster recovery procedures
+  - Scaling considerations and cost monitoring
+  - Post-MVP multi-source enablement instructions
+
+### Decisions
+
+- **Multi-source infrastructure ready from day 1** - Angela confirmed "Apollo database is not good" based on real-world experience. MVP uses Apollo only (simpler), but all 7 API keys will be added to Vercel environment from start. Infrastructure built to support Prospeo/Expandi/BounceBan fallback - easy to enable post-MVP (no refactoring needed).
+
+### Why These Changes
+
+- **DEPLOYMENT.md creation:** Angela setting up Vercel now (ahead of Sprint 14) to understand deployment process and prepare custom domain. Guide ensures she can complete deployment when MVP ready without surprises.
+- **All API keys upfront:** Even though MVP uses Apollo only, adding all keys to Vercel now means post-MVP features (multi-source enrichment) can be enabled with code changes only - no redeployment or environment reconfiguration needed.
+
+### Status
+
+- Environment setup: ✅ Complete (Sprint 2)
+- Search form UI: 🔄 In progress (Sprint 3 - DeepSeek building)
+- Deployment preparation: ✅ Guide ready, Angela exploring Vercel
 
 ---
 
