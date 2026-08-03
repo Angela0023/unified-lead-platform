@@ -12,13 +12,41 @@ import type {
   SearchCompaniesResult,
 } from "./types";
 
-const BASE_URL = "https://api.apollo.io/v1";
+/**
+ * Apollo API v1 (current spec, verified 2026-08-02):
+ * - Base URL: https://api.apollo.io/api/v1
+ * - Auth: `x-api-key` header
+ * - Search filters are QUERY parameters (arrays as name[]=value)
+ * - Credits: 1 credit per company-search page; 1 credit per person
+ *   enrich result (0 when nothing found)
+ */
+
+const BASE_URL = "https://api.apollo.io/api/v1";
 
 function headers(): Record<string, string> {
   return {
     "Content-Type": "application/json",
-    "X-Api-Key": config.apolloApiKey,
+    Accept: "application/json",
+    "x-api-key": config.apolloApiKey,
   };
+}
+
+/** Builds a query string where arrays become repeated name[]=value pairs. */
+function queryString(
+  params: Record<string, string | number | string[] | undefined>,
+): string {
+  const searchParams = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === "") continue;
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (item) searchParams.append(`${key}[]`, item);
+      }
+    } else {
+      searchParams.append(key, String(value));
+    }
+  }
+  return searchParams.toString();
 }
 
 function normalizeCompany(raw: Record<string, unknown>): ApolloCompany {
@@ -28,23 +56,39 @@ function normalizeCompany(raw: Record<string, unknown>): ApolloCompany {
       ? Number(raw.employee_count)
       : undefined;
   const locationParts = [
-    raw.city,
-    raw.state,
-    raw.country === "us" ? "United States" : raw.country,
+    raw.organization_city ?? raw.city,
+    raw.organization_state ?? raw.state,
+    raw.organization_country ?? raw.country,
   ]
     .filter(Boolean)
     .map((part) => String(part));
 
   return {
-    id: String(raw.id),
+    id: String(raw.organization_id ?? raw.id),
     name: String(raw.name ?? "Unknown"),
     domain: String(raw.primary_domain ?? raw.domain ?? ""),
-    website: raw.website ? String(raw.website) : undefined,
+    website: raw.website_url
+      ? String(raw.website_url)
+      : raw.website
+        ? String(raw.website)
+        : undefined,
     industry: raw.industry ? String(raw.industry) : undefined,
     employeeCount: Number.isNaN(Number(count)) ? undefined : Number(count),
-    city: raw.city ? String(raw.city) : undefined,
-    state: raw.state ? String(raw.state) : undefined,
-    country: raw.country ? String(raw.country) : undefined,
+    city: raw.organization_city
+      ? String(raw.organization_city)
+      : raw.city
+        ? String(raw.city)
+        : undefined,
+    state: raw.organization_state
+      ? String(raw.organization_state)
+      : raw.state
+        ? String(raw.state)
+        : undefined,
+    country: raw.organization_country
+      ? String(raw.organization_country)
+      : raw.country
+        ? String(raw.country)
+        : undefined,
     organizationSize: raw.organization_num_employees
       ? String(raw.organization_num_employees)
       : undefined,
@@ -53,28 +97,34 @@ function normalizeCompany(raw: Record<string, unknown>): ApolloCompany {
 }
 
 function normalizePerson(raw: Record<string, unknown>): ApolloPerson {
+  const org = raw.organization as Record<string, unknown> | undefined;
+  const firstName = raw.first_name ? String(raw.first_name) : "";
+  const lastName = raw.last_name
+    ? String(raw.last_name)
+    : raw.last_name_obfuscated
+      ? String(raw.last_name_obfuscated)
+      : "";
   return {
     id: String(raw.id),
-    name: String(raw.name ?? "Unknown"),
+    name: `${firstName} ${lastName}`.trim(),
     title: raw.title ? String(raw.title) : undefined,
     email: raw.email ? String(raw.email) : null,
     linkedinUrl: raw.linkedin_url ? String(raw.linkedin_url) : null,
-    organizationId: raw.organization_id
-      ? String(raw.organization_id)
-      : undefined,
+    organizationId: org?.id ? String(org.id) : undefined,
   };
 }
 
 async function request<T>(
   path: string,
-  body: Record<string, unknown>,
+  params: Record<string, string | number | string[] | undefined>,
+  body: Record<string, unknown> | undefined = undefined,
 ): Promise<T> {
   try {
     const response = await retryWithBackoff(() =>
-      fetchJson<T>(`${BASE_URL}${path}`, {
+      fetchJson<T>(`${BASE_URL}${path}?${queryString(params)}`, {
         method: "POST",
         headers: headers(),
-        body: JSON.stringify(body),
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
         timeoutMs: 30_000,
       }),
     );
@@ -99,16 +149,16 @@ export const apolloClient = {
     }
     try {
       const response = await fetchJson<{
-        data: { status?: string };
+        is_logged_in?: boolean;
+        error?: string;
       }>(`${BASE_URL}/auth/check`, {
         method: "GET",
         headers: headers(),
         timeoutMs: 15_000,
       });
-      const status = response.data?.status;
       return {
-        authenticated: status === "valid" || status === "authenticated",
-        message: status ? `Status: ${status}` : "Unknown status",
+        authenticated: response.is_logged_in === true,
+        message: response.error ?? (response.is_logged_in ? "Authenticated" : "Unknown status"),
       };
     } catch (error) {
       return {
@@ -123,13 +173,10 @@ export const apolloClient = {
     if (config.demoMode) return demo.apolloCredits();
     if (!config.apolloApiKey) return { credits: null };
     try {
-      const response = await fetchJson<{
-        credit_balance?: number;
-      }>(`${BASE_URL}/auth/credit_balance`, {
-        method: "GET",
-        headers: headers(),
-        timeoutMs: 15_000,
-      });
+      const response = await fetchJson<{ credit_balance?: number }>(
+        `${BASE_URL}/auth/credit_balance`,
+        { method: "GET", headers: headers(), timeoutMs: 15_000 },
+      );
       return { credits: response.credit_balance ?? null };
     } catch {
       return { credits: null };
@@ -137,8 +184,8 @@ export const apolloClient = {
   },
 
   /**
-   * Company discovery (Stage 3 / Phase 1).
-   * Single bulk query; returns up to perPage companies plus the total match count.
+   * Company discovery (Stage 3 / Phase 1): organization search.
+   * 1 Apollo credit per page (per_page up to 100).
    */
   async searchCompanies(
     params: SearchCompaniesParams,
@@ -146,25 +193,36 @@ export const apolloClient = {
     if (config.demoMode) {
       return demo.apolloCompanies(params);
     }
-    const body: Record<string, unknown> = {
-      filters: {
-        industries: params.industries,
-        organization_locations: params.locations,
-        employee_count: {
-          min: params.employeeCountMin ?? 1,
-          ...(params.employeeCountMax ? { max: params.employeeCountMax } : {}),
-        },
-      },
-      page: params.page ?? 1,
-      per_page: params.perPage ?? 25,
-    };
+    const sizeRange =
+      params.employeeCountMin !== undefined
+        ? `${params.employeeCountMin},${params.employeeCountMax ?? 50000}`
+        : undefined;
     const response = await request<{
+      accounts?: Record<string, unknown>[];
       organizations?: Record<string, unknown>[];
       pagination?: { total_entries?: number };
-    }>("/mixed_companies/search", body);
+    }>(
+      "/mixed_companies/search",
+      {
+        organization_locations: params.locations,
+        organization_num_employees_ranges: sizeRange
+          ? [sizeRange]
+          : undefined,
+        q_organization_keyword_tags: params.industries,
+        page: params.page ?? 1,
+        per_page: params.perPage ?? 25,
+      },
+      {},
+    );
 
+    // Apollo returns either `accounts` or `organizations` (sometimes an empty
+    // array for the other) - take whichever actually contains results.
+    const rawCompanies =
+      response.accounts && response.accounts.length > 0
+        ? response.accounts
+        : (response.organizations ?? []);
     return {
-      companies: (response.organizations ?? []).map(normalizeCompany),
+      companies: rawCompanies.map(normalizeCompany),
       totalEntries: response.pagination?.total_entries ?? 0,
     };
   },
@@ -174,30 +232,39 @@ export const apolloClient = {
     if (config.demoMode) {
       return demo.apolloContacts(params);
     }
-    const body: Record<string, unknown> = {
-      filters: {
-        organization_ids: [params.organizationId],
-        person_titles: [params.title],
-      },
-      page: 1,
-      per_page: params.limit ?? 2,
-    };
     const response = await request<{
       people?: Record<string, unknown>[];
-    }>("/people/search", body);
+    }>(
+      "/mixed_people/api_search",
+      {
+        q_organization_domains_list: [params.domain],
+        person_titles: params.titles,
+        // Wider recall: seniority filter catches C-level, VPs and directors
+        // even when their exact title differs from the requested role.
+        person_seniorities: ["c-suite", "vp", "director"],
+        per_page: params.limit ?? 2,
+      },
+      {},
+    );
     return (response.people ?? []).map(normalizePerson);
   },
 
-  /** Email enrichment (Stage 6 / Phase 4): reveal email for a person by id. */
+  /**
+   * Email enrichment (Stage 6 / Phase 4): people/match by person id.
+   * 1 credit only when an email/demographics result is found.
+   */
   async getEmail(personId: string): Promise<string | null> {
     if (config.demoMode) return demo.apolloEmail(personId);
-    const body: Record<string, unknown> = {
-      id: personId,
-      reveal_personal_emails: false,
-    };
     const response = await request<{
       person?: Record<string, unknown>;
-    }>("/people/match", body);
+    }>(
+      "/people/match",
+      {
+        id: personId,
+        reveal_personal_emails: "false",
+      },
+      {},
+    );
     const email = response.person?.email;
     return email ? String(email) : null;
   },

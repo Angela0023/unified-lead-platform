@@ -4,17 +4,28 @@ import { demo } from "@/lib/demo-data";
 import { MillionVerifierError } from "./errors";
 import type {
   AuthCheckResult,
-  BatchStatusResult,
-  BatchUploadResult,
   CreditsResult,
   EmailVerdict,
+  EmailVerification,
 } from "./types";
-import { BATCH_MAX_WAIT_MS, BATCH_POLL_INTERVAL_MS } from "./types";
 
-const BASE_URL = "https://api.millionverifier.com/api/v4";
+/**
+ * Million Verifier API v3 (real-time single verification).
+ * See https://developer.millionverifier.com
+ *
+ * Base: https://api.millionverifier.com/api/v3
+ * - GET /credits?api=KEY            -> { credits, bulk_credits, ... }
+ * - GET /?api=KEY&email=...         -> { result, error, credits, ... }
+ *
+ * Note: verified 2026-08-02 - the v4 batch API used in earlier planning
+ * docs does not exist; v3 single verification costs the same 1 credit
+ * per email and is used for the MVP (see DECISIONS.md).
+ */
+
+const BASE_URL = "https://api.millionverifier.com/api/v3";
 
 function buildUrl(path: string): string {
-  return `${BASE_URL}${path}?apiKey=${encodeURIComponent(config.millionVerifierApiKey)}`;
+  return `${BASE_URL}${path}?api=${encodeURIComponent(config.millionVerifierApiKey)}`;
 }
 
 /** Maps Million Verifier result strings to our verdict enum. */
@@ -22,12 +33,11 @@ function mapVerdict(result: string): EmailVerdict {
   switch (result.toLowerCase()) {
     case "ok":
       return "VALID";
+    case "catch_all":
+      return "RISKY";
+    case "disposable":
     case "invalid":
       return "INVALID";
-    case "catch_all":
-    case "risky":
-    case "unknown_risky":
-      return "RISKY";
     default:
       return "UNKNOWN";
   }
@@ -45,11 +55,11 @@ export const mvClient = {
     }
     try {
       const response = await fetchJson<{ credits?: number; error?: string }>(
-        buildUrl("/credits-balance"),
+        buildUrl("/credits"),
         { method: "GET", timeoutMs: 15_000 },
       );
       return {
-        authenticated: response.error ? false : true,
+        authenticated: typeof response.credits === "number",
         message: response.error ?? `Credits: ${response.credits ?? "unknown"}`,
       };
     } catch (error) {
@@ -60,13 +70,13 @@ export const mvClient = {
     }
   },
 
-  /** Current credit balance (null when unavailable). */
+  /** Current single-verification credit balance (null when unavailable). */
   async getCreditsRemaining(): Promise<CreditsResult> {
     if (config.demoMode) return demo.mvCredits();
     if (!config.millionVerifierApiKey) return { credits: null };
     try {
       const response = await fetchJson<{ credits?: number }>(
-        buildUrl("/credits-balance"),
+        buildUrl("/credits"),
         { method: "GET", timeoutMs: 15_000 },
       );
       return { credits: response.credits ?? null };
@@ -75,79 +85,56 @@ export const mvClient = {
     }
   },
 
-  /** Email validation (Stage 7 / Phase 5): upload a batch of emails. */
-  async uploadBatch(emails: string[]): Promise<BatchUploadResult> {
-    if (config.demoMode) return demo.mvUploadBatch(emails);
-    try {
-      const response = await fetchJson<{ id?: string; error?: string }>(
-        buildUrl("/batches"),
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(emails),
-          timeoutMs: 60_000,
-        },
-      );
-      if (!response.id) {
-        throw new MillionVerifierError(
-          response.error ?? "Million Verifier returned no batch id",
-          0,
-          false,
-        );
-      }
-      return { batchId: response.id };
-    } catch (error) {
-      if (error instanceof MillionVerifierError) throw error;
-      throw new MillionVerifierError(
-        error instanceof Error ? error.message : "Batch upload failed",
-        0,
-        false,
-      );
-    }
+  /** Verifies a single email in real time (1 credit). */
+  async verifyEmail(email: string): Promise<EmailVerification> {
+    if (config.demoMode) return demo.mvVerifyEmail(email);
+    const response = await fetchJson<{
+      result?: string;
+      error?: string;
+    }>(
+      `${BASE_URL}/?api=${encodeURIComponent(config.millionVerifierApiKey)}&email=${encodeURIComponent(email)}&timeout=10`,
+      { method: "GET", timeoutMs: 30_000 },
+    );
+    return {
+      email,
+      verdict: response.error ? "UNKNOWN" : mapVerdict(response.result ?? ""),
+      reason: response.error || undefined,
+    };
   },
 
-  /** Polls a batch until results are ready (WORKFLOW.md Stage 7: 5-10 min). */
-  async pollBatch(batchId: string): Promise<BatchStatusResult> {
-    if (config.demoMode) return demo.mvPollBatch(batchId);
+  /**
+   * Verifies a list of emails with bounded concurrency.
+   * Used by the email-validation phase (Stage 7).
+   */
+  async verifyEmails(
+    emails: string[],
+    options: { concurrency?: number } = {},
+  ): Promise<EmailVerification[]> {
+    const { concurrency = 5 } = options;
+    const results: EmailVerification[] = [];
+    let cursor = 0;
 
-    const startedAt = Date.now();
-    while (Date.now() - startedAt < BATCH_MAX_WAIT_MS) {
-      const response = await fetchJson<{
-        id?: string;
-        status?: string;
-        progress?: number;
-        results?: {
-          email?: string;
-          result?: string;
-          reason?: string;
-        }[];
-      }>(buildUrl(`/batches/${batchId}`), {
-        method: "GET",
-        timeoutMs: 20_000,
-      });
-
-      const results = (response.results ?? []).map((item) => ({
-        email: item.email ?? "",
-        verdict: mapVerdict(item.result ?? ""),
-        reason: item.reason,
-      }));
-
-      if (response.status === "ready" || results.length > 0) {
-        return {
-          batchId: response.id ?? batchId,
-          status: response.status ?? "ready",
-          progress: response.progress ?? 100,
-          results,
-        };
+    async function worker(): Promise<void> {
+      while (cursor < emails.length) {
+        const email = emails[cursor];
+        cursor++;
+        try {
+          results.push(await mvClient.verifyEmail(email));
+        } catch (error) {
+          results.push({
+            email,
+            verdict: "UNKNOWN",
+            reason: error instanceof Error ? error.message : "Verification failed",
+          });
+        }
       }
-      await new Promise((resolve) =>
-        setTimeout(resolve, BATCH_POLL_INTERVAL_MS),
-      );
     }
-    throw new MillionVerifierError(
-      `Batch ${batchId} did not complete within ${BATCH_MAX_WAIT_MS / 60000} minutes`,
-      0,
-      false,
+
+    const workers = Array.from(
+      { length: Math.min(concurrency, emails.length) },
+      () => worker(),
     );
+    await Promise.all(workers);
+    return results;
   },
 };

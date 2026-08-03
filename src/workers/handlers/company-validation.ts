@@ -2,6 +2,7 @@ import { prisma } from "../../lib/db";
 import { firecrawlClient } from "../../integrations/firecrawl/client";
 import { deepseekClient } from "../../integrations/deepseek/client";
 import { config } from "../../lib/config";
+import { guardFirecrawlCredits, guardDeepSeekBalance } from "../../lib/credit-guards";
 import {
   completePhaseJob,
   enqueueNextPhase,
@@ -36,13 +37,16 @@ export async function handleCompanyValidation(searchId: string) {
       orderBy: { createdAt: "asc" },
     });
 
+    // Cost guards: never start scraping/validation if credits are too low.
+    // DeepSeek's balance endpoint is known to serve stale cached values,
+    // so use a hard floor instead of a proportional estimate (a false
+    // positive would block searches that actually have plenty of balance).
+    await guardFirecrawlCredits(companies.length + 25);
+    await guardDeepSeekBalance(0.5);
+
     console.log(
       `[pipeline] Validating ${companies.length} companies for search ${searchId}`,
     );
-
-    let validated = 0;
-    let rejected = 0;
-    let failed = 0;
 
     for (let i = 0; i < companies.length; i += 50) {
       const batch = companies.slice(i, i + 50);
@@ -82,10 +86,7 @@ export async function handleCompanyValidation(searchId: string) {
             },
           });
 
-          if (status === "VALIDATED") validated++;
-          else rejected++;
         } catch (error) {
-          failed++;
           await prisma.company.update({
             where: { id: company.id },
             data: {
@@ -107,20 +108,23 @@ export async function handleCompanyValidation(searchId: string) {
         searchId,
         "company-validation",
         phaseProgress("company-validation", processed / companies.length),
-        { companiesValidated: validated },
       );
       console.log(
-        `[pipeline] Validation checkpoint: ${processed}/${companies.length} companies (${validated} validated, ${rejected} rejected, ${failed} failed)`,
+        `[pipeline] Validation checkpoint: ${processed}/${companies.length} companies processed`,
       );
     }
 
+    // Idempotent stats: count actual DB state (safe on re-runs)
+    const validated = await prisma.company.count({
+      where: { searchId, status: "VALIDATED" },
+    });
     await updateSearchProgress(searchId, "company-validation", 45, {
       companiesValidated: validated,
     });
     await completePhaseJob(job.id);
     await enqueueNextPhase("company-validation", searchId);
     console.log(
-      `[pipeline] Validation complete for ${searchId}: ${validated} validated, ${rejected} rejected, ${failed} failed`,
+      `[pipeline] Validation complete for ${searchId}: ${validated} validated (from DB)`,
     );
   } catch (error) {
     const message =

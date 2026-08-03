@@ -1,8 +1,9 @@
-import dotenv from "dotenv";
-// Load .env.local first (Next.js convention); fall back to .env
-dotenv.config({ path: ".env.local" });
-dotenv.config();
 import { Worker } from "bullmq";
+
+// Env vars are loaded by the start script via `node --env-file-if-exists=.env.local`.
+console.log(
+  `[worker] cwd: ${process.cwd()} | demo: ${process.env.DEMO_MODE ?? "unset"} | apollo key: ${process.env.APOLLO_API_KEY ? "set" : "MISSING"} | companies/search: ${process.env.COMPANIES_PER_SEARCH ?? "unset"}`,
+);
 import {
   QUEUE_NAME,
   createRedisConnection,
@@ -23,14 +24,20 @@ import { handleJob } from "./router";
  */
 
 const connection = createRedisConnection();
+// Heartbeat uses its own connection so it never interferes with BullMQ's
+// internal lock/queue commands.
+const heartbeatConnection = createRedisConnection();
 
 const worker = new Worker<LeadJobData>(QUEUE_NAME, (job) => handleJob(job), {
   connection,
+  // Phases can run 20-60+ minutes (scraping + AI validation). The default
+  // 30s lock would expire mid-phase and re-queue the job.
+  lockDuration: 60 * 60 * 1000,
 });
 
 const heartbeatTimer = setInterval(async () => {
   try {
-    await connection.set(
+    await heartbeatConnection.set(
       WORKER_HEARTBEAT_KEY,
       Date.now().toString(),
       "EX",
@@ -60,6 +67,7 @@ async function shutdown(signal: string) {
   clearInterval(heartbeatTimer);
   await worker.close();
   await connection.quit();
+  await heartbeatConnection.quit();
   process.exit(0);
 }
 

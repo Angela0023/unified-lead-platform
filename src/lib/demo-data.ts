@@ -13,12 +13,6 @@ import { MAX_CONTACTS_PER_COMPANY } from "./constants";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/**
- * Process-local store for demo email batches (uploadBatch → pollBatch).
- * Lives only in the worker process; demo mode only.
- */
-const demoBatches = new Map<string, string[]>();
-
 /** Simple deterministic string hash (FNV-1a). */
 export function hashString(input: string): number {
   let hash = 2166136261;
@@ -278,8 +272,8 @@ export const demo = {
   },
 
   async apolloContacts(params: {
-    organizationId: string;
-    title: string;
+    domain: string;
+    titles: string[];
     limit?: number;
   }): Promise<
     {
@@ -292,15 +286,14 @@ export const demo = {
   > {
     await sleep(400);
     const limit = params.limit ?? MAX_CONTACTS_PER_COMPANY;
-    const orgSeed = Number(params.organizationId.replace("demo-org-", ""));
+    const orgSeed = hashString(params.domain);
     const random = mulberry32(orgSeed);
     const count = 1 + Math.floor(random() * limit);
     const titleVariants = [
-      params.title,
+      ...params.titles,
       "VP Engineering",
-      "Chief Technology Officer",
       "Head of Engineering",
-      "VP Product",
+      "Chief Product Officer",
     ];
     return Array.from({ length: count }, (_, index) => {
       const personSeed = orgSeed + index * 7919;
@@ -316,7 +309,7 @@ export const demo = {
         name,
         title: titleVariants[Math.floor(random() * titleVariants.length)],
         linkedinUrl: `linkedin.com/in/${firstName.toLowerCase()}-${lastName.toLowerCase()}`,
-        organizationId: params.organizationId,
+        organizationId: String(orgSeed),
       };
     });
   },
@@ -382,51 +375,17 @@ export const demo = {
     };
   },
 
-  async mvUploadBatch(emails: string[]): Promise<{ batchId: string }> {
-    await sleep(300);
-    const batchId = `demo-batch-${hashString(emails.join("_"))}`;
-    demoBatches.set(batchId, emails);
-    return { batchId };
-  },
-
-  async mvPollBatch(batchId: string): Promise<{
-    batchId: string;
-    status: string;
-    progress: number;
-    results: {
-      email: string;
-      verdict: "VALID" | "INVALID" | "RISKY" | "UNKNOWN";
-      reason?: string;
-    }[];
+  async mvVerifyEmail(email: string): Promise<{
+    email: string;
+    verdict: "VALID" | "INVALID" | "RISKY" | "UNKNOWN";
+    reason?: string;
   }> {
-    await sleep(1500);
-    const emails = demoBatches.get(batchId) ?? [];
-    const results = emails.map((email) => {
-      const random = mulberry32(hashString(email));
-      const roll = random();
-      if (roll < 0.75) {
-        return { email, verdict: "VALID" as const, reason: "Deliverable" };
-      }
-      if (roll < 0.81) {
-        return {
-          email,
-          verdict: "RISKY" as const,
-          reason: "Catch-all domain",
-        };
-      }
-      if (roll < 0.93) {
-        return {
-          email,
-          verdict: "INVALID" as const,
-          reason: "Mailbox not found",
-        };
-      }
-      return {
-        email,
-        verdict: "UNKNOWN" as const,
-        reason: "Unable to verify",
-      };
-    });
-    return { batchId, status: "ready", progress: 100, results };
+    await sleep(300);
+    const random = mulberry32(hashString(email));
+    const roll = random();
+    if (roll < 0.75) return { email, verdict: "VALID", reason: "Deliverable" };
+    if (roll < 0.81) return { email, verdict: "RISKY", reason: "Catch-all domain" };
+    if (roll < 0.93) return { email, verdict: "INVALID", reason: "Mailbox not found" };
+    return { email, verdict: "UNKNOWN", reason: "Unable to verify" };
   },
 };

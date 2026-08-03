@@ -12,6 +12,47 @@ import {
   updateSearchProgress,
 } from "../../lib/pipeline";
 
+/** Expands a target role into searchable title variants (Apollo fuzzy-matches). */
+function buildTitleVariants(role: string): string[] {
+  const lower = role.toLowerCase();
+  const variants = new Set<string>([role]);
+
+  if (lower.includes("cto") || lower.includes("technology officer")) {
+    variants.add("CTO");
+    variants.add("Chief Technology Officer");
+  }
+  if (lower.includes("engineering")) {
+    variants.add("VP Engineering");
+    variants.add("Head of Engineering");
+  }
+  if (lower.includes("product")) {
+    variants.add("Chief Product Officer");
+    variants.add("Head of Product");
+  }
+  if (lower.includes("vp") || lower.includes("vice president")) {
+    variants.add("Vice President");
+  }
+  if (lower.includes("marketing")) {
+    variants.add("VP Marketing");
+    variants.add("Head of Marketing");
+  }
+  if (lower.includes("sales")) {
+    variants.add("VP Sales");
+    variants.add("Head of Sales");
+  }
+
+  return Array.from(variants).slice(0, 5);
+}
+
+/** Strips protocol/www from a domain for Apollo's domains_list filter. */
+function toDomain(website: string): string {
+  return website
+    .replace(/^https?:\/\//, "")
+    .replace(/^www\./, "")
+    .split("/")[0]
+    .toLowerCase();
+}
+
 /**
  * Phase 3: Contact Discovery (WORKFLOW.md Stage 5).
  * Finds decision makers (matching the target role) at each validated
@@ -28,23 +69,33 @@ export async function handleContactDiscovery(searchId: string) {
     const companies = await prisma.company.findMany({
       where: { searchId, status: "VALIDATED" },
       orderBy: { createdAt: "asc" },
+      include: { _count: { select: { contacts: true } } },
     });
+    const pendingCompanies = companies.filter(
+      (company) => company._count.contacts === 0,
+    );
+    const skipped = companies.length - pendingCompanies.length;
+    if (skipped > 0) {
+      console.log(
+        `[pipeline] Skipping ${skipped} companies that already have contacts (idempotent re-run)`,
+      );
+    }
 
     console.log(
-      `[pipeline] Finding contacts at ${companies.length} companies for search ${searchId}`,
+      `[pipeline] Finding contacts at ${pendingCompanies.length} companies for search ${searchId}`,
     );
 
     let contactsFound = 0;
     let failedCompanies = 0;
 
-    for (let i = 0; i < companies.length; i += 50) {
-      const batch = companies.slice(i, i + 50);
+    for (let i = 0; i < pendingCompanies.length; i += 50) {
+      const batch = pendingCompanies.slice(i, i + 50);
 
       for (const company of batch) {
         try {
           const people = await apolloClient.findContacts({
-            organizationId: company.apolloId ?? company.name,
-            title: search.targetRole,
+            domain: toDomain(company.website),
+            titles: buildTitleVariants(search.targetRole),
             limit: MAX_CONTACTS_PER_COMPANY,
           });
 
@@ -90,21 +141,23 @@ export async function handleContactDiscovery(searchId: string) {
       await updateSearchProgress(
         searchId,
         "contact-discovery",
-        phaseProgress("contact-discovery", processed / companies.length),
-        { contactsFound },
+        phaseProgress("contact-discovery", processed / pendingCompanies.length),
       );
       console.log(
-        `[pipeline] Contact checkpoint: ${processed}/${companies.length} companies, ${contactsFound} contacts`,
+        `[pipeline] Contact checkpoint: ${processed}/${pendingCompanies.length} companies, ${contactsFound} contacts`,
       );
     }
 
+    const totalContacts = await prisma.contact.count({
+      where: { company: { searchId } },
+    });
     await updateSearchProgress(searchId, "contact-discovery", 65, {
-      contactsFound,
+      contactsFound: totalContacts,
     });
     await completePhaseJob(job.id);
     await enqueueNextPhase("contact-discovery", searchId);
     console.log(
-      `[pipeline] Contact discovery complete for ${searchId}: ${contactsFound} contacts (${failedCompanies} companies failed)`,
+      `[pipeline] Contact discovery complete for ${searchId}: ${totalContacts} contacts (from DB, ${failedCompanies} companies failed this run)`,
     );
   } catch (error) {
     const message =

@@ -4,7 +4,7 @@ import { demo } from "@/lib/demo-data";
 import { FirecrawlError } from "./errors";
 import type { AuthCheckResult, CreditsResult, ScrapeResult } from "./types";
 
-const BASE_URL = "https://api.firecrawl.dev/v1";
+const BASE_URL = "https://api.firecrawl.dev/v2";
 
 function headers(): Record<string, string> {
   return {
@@ -27,13 +27,17 @@ export const firecrawlClient = {
       return { authenticated: false, message: "FIRECRAWL_API_KEY not set" };
     }
     try {
-      const response = await fetchJson<{ remainingCredits?: number }>(
-        `${BASE_URL}/credits`,
-        { method: "GET", headers: headers(), timeoutMs: 15_000 },
-      );
+      const response = await fetchJson<{
+        success?: boolean;
+        data?: { remainingCredits?: number };
+      }>(`${BASE_URL}/team/credit-usage`, {
+        method: "GET",
+        headers: headers(),
+        timeoutMs: 15_000,
+      });
       return {
-        authenticated: true,
-        message: `Credits: ${response.remainingCredits ?? "unknown"}`,
+        authenticated: response.success === true,
+        message: `Credits: ${response.data?.remainingCredits ?? "unknown"}`,
       };
     } catch (error) {
       return {
@@ -48,11 +52,14 @@ export const firecrawlClient = {
     if (config.demoMode) return demo.firecrawlCredits();
     if (!config.firecrawlApiKey) return { credits: null };
     try {
-      const response = await fetchJson<{ remainingCredits?: number }>(
-        `${BASE_URL}/credits`,
-        { method: "GET", headers: headers(), timeoutMs: 15_000 },
-      );
-      return { credits: response.remainingCredits ?? null };
+      const response = await fetchJson<{
+        data?: { remainingCredits?: number };
+      }>(`${BASE_URL}/team/credit-usage`, {
+        method: "GET",
+        headers: headers(),
+        timeoutMs: 15_000,
+      });
+      return { credits: response.data?.remainingCredits ?? null };
     } catch {
       return { credits: null };
     }
@@ -72,7 +79,6 @@ export const firecrawlClient = {
           body: JSON.stringify({
             url: normalizeUrl(url),
             formats: ["markdown"],
-            timeout: 30_000,
           }),
           timeoutMs: 45_000,
         }),

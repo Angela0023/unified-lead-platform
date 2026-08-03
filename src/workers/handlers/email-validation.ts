@@ -1,6 +1,6 @@
 import { prisma } from "../../lib/db";
 import { mvClient } from "../../integrations/million-verifier/client";
-import type { EmailVerdict } from "../../integrations/million-verifier/types";
+import { guardMvCredits } from "../../lib/credit-guards";
 import {
   completePhaseJob,
   failPhaseJob,
@@ -32,6 +32,9 @@ export async function handleEmailValidation(searchId: string) {
       .map((contact) => contact.email)
       .filter((email): email is string => Boolean(email));
 
+    // Cost guard: never start validation if Million Verifier credits are too low
+    await guardMvCredits(emails.length + 10);
+
     console.log(
       `[pipeline] Validating ${emails.length} emails for search ${searchId}`,
     );
@@ -56,16 +59,15 @@ export async function handleEmailValidation(searchId: string) {
       return;
     }
 
-    const { batchId } = await mvClient.uploadBatch(emails);
-    console.log(`[pipeline] Batch ${batchId} uploaded, polling for results...`);
+    console.log(
+      `[pipeline] Validating ${emails.length} emails with Million Verifier (concurrency 5)...`,
+    );
 
-    const batch = await mvClient.pollBatch(batchId);
+    // Per-email verification with immediate saves (crash-resistant)
+    const verdicts = await mvClient.verifyEmails(emails, { concurrency: 5 });
 
-    const verdictByEmail = new Map<string, EmailVerdict>(
-      batch.results.map((result) => [
-        result.email.toLowerCase(),
-        result.verdict,
-      ]),
+    const verdictByEmail = new Map(
+      verdicts.map((result) => [result.email.toLowerCase(), result]),
     );
 
     let valid = 0;
@@ -74,18 +76,19 @@ export async function handleEmailValidation(searchId: string) {
 
     for (const contact of contacts) {
       if (!contact.email) continue;
-      const verdict = verdictByEmail.get(contact.email.toLowerCase());
-      if (!verdict) continue;
+      const result = verdictByEmail.get(contact.email.toLowerCase());
+      if (!result) continue;
 
-      if (verdict === "VALID") valid++;
-      else if (verdict === "RISKY") risky++;
+      if (result.verdict === "VALID") valid++;
+      else if (result.verdict === "RISKY") risky++;
       else invalid++;
 
       await prisma.contact.update({
         where: { id: contact.id },
         data: {
-          emailStatus: verdict,
+          emailStatus: result.verdict,
           status: "EMAIL_VALIDATED",
+          errorMessage: result.reason,
         },
       });
     }

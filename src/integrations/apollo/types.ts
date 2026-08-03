@@ -39,8 +39,10 @@ export interface SearchCompaniesResult {
 }
 
 export interface FindContactsParams {
-  organizationId: string;
-  title: string;
+  /** Company domain (e.g. "apple.com") - Apollo people search key. */
+  domain: string;
+  /** Target roles/titles to search for (Apollo fuzzy-matches each). */
+  titles: string[];
   limit?: number;
 }
 

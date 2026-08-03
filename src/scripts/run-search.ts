@@ -1,6 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config({ path: ".env.local" });
-dotenv.config();
+// Env vars are loaded by the start script via `node --env-file-if-exists=.env.local`.
 import { prisma } from "../lib/db";
 import { enqueueSearchJob } from "../lib/queue";
 

@@ -97,13 +97,16 @@ export async function enrichEmails(searchId: string) {
       );
     }
 
+    const totalEmails = await prisma.contact.count({
+      where: { company: { searchId }, email: { not: null } },
+    });
     await updateSearchProgress(searchId, "email-enrichment", 85, {
-      emailsFound,
+      emailsFound: totalEmails,
     });
     await completePhaseJob(job.id);
     await enqueueNextPhase("email-enrichment", searchId);
     console.log(
-      `[pipeline] Enrichment complete for ${searchId}: ${emailsFound} emails found, ${failed} failed`,
+      `[pipeline] Enrichment complete for ${searchId}: ${totalEmails} emails (from DB), ${failed} failed this run`,
     );
   } catch (error) {
     const message =

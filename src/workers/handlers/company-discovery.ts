@@ -2,6 +2,7 @@ import { prisma } from "../../lib/db";
 import { apolloClient } from "../../integrations/apollo/client";
 import { parseCompanySize } from "../../lib/constants";
 import { config } from "../../lib/config";
+import { guardApolloCredits } from "../../lib/credit-guards";
 import {
   completePhaseJob,
   enqueueNextPhase,
@@ -41,6 +42,11 @@ export async function handleCompanyDiscovery(searchId: string) {
     }
 
     const size = parseCompanySize(search.companySize);
+
+    // Cost guard: never start discovery if Apollo credits are too low
+    const requiredCredits = config.companiesPerSearch * 3 + 50;
+    await guardApolloCredits(requiredCredits);
+
     const result = await apolloClient.searchCompanies({
       industries: search.industry,
       locations: search.location,
