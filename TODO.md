@@ -351,7 +351,8 @@
 
 ---
 
-**Last Updated:** 2026-08-02
-**Current Sprint:** MVP Complete - Stages 0-7 + 9 (Sprints 3-13) ✅
-**Next Sprint:** Sprint 14 Deployment ⏳ (needs Vercel/Supabase/Railway accounts + API keys)
-**MVP Target Date:** 2026-10-02 (2 months)
+**Last Updated:** 2026-08-05
+**Version:** 0.4.0
+**Status:** MVP Complete + Enhanced Discovery + Professional Design ✅
+**Next:** Production Deployment (requires API keys + Vercel/Supabase/Railway accounts)
+**Local Dev:** `npm run dev` at http://localhost:3000 (DEMO_MODE enabled)
