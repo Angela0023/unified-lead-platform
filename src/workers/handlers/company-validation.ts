@@ -13,6 +13,7 @@ import {
   updateJobProgress,
   updateSearchProgress,
 } from "../../lib/pipeline";
+import { checkQuality } from "../../lib/quality-rules";
 
 const SCRAPE_RATE_LIMIT_DELAY_MS = 6_000; // Firecrawl ~10 req/min
 
@@ -109,8 +110,34 @@ export async function handleCompanyValidation(searchId: string) {
         "company-validation",
         phaseProgress("company-validation", processed / companies.length),
       );
+
+      // Quality check
+      const allCompanies = await prisma.company.findMany({
+        where: {
+          searchId,
+          status: { in: ["VALIDATED", "REJECTED"] },
+        },
+      });
+
+      const qualityCheck = checkQuality(
+        allCompanies,
+        search.targetCompanyCount || 500,
+      );
+
+      // Update search with quality metrics
+      await prisma.search.update({
+        where: { id: searchId },
+        data: {
+          qualityDistribution: qualityCheck.distribution,
+          qualityWarnings: qualityCheck.warnings,
+        },
+      });
+
       console.log(
         `[pipeline] Validation checkpoint: ${processed}/${companies.length} companies processed`,
+      );
+      console.log(
+        `[quality] Score distribution: 1=${qualityCheck.distribution.score1}, 2=${qualityCheck.distribution.score2}, 3=${qualityCheck.distribution.score3}, 4=${qualityCheck.distribution.score4}, 5=${qualityCheck.distribution.score5}`,
       );
     }
 

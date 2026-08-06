@@ -19,6 +19,8 @@ export function validateSearchInput(
   const location = body.location;
   const targetRole = body.targetRole;
   const icpPrompt = body.icpPrompt;
+  const targetCompanyCount = body.targetCompanyCount;
+  const leadsPerCompany = body.leadsPerCompany;
 
   if (
     !Array.isArray(industry) ||
@@ -58,11 +60,29 @@ export function validateSearchInput(
     return null;
   }
 
+  if (
+    typeof targetCompanyCount !== "number" ||
+    targetCompanyCount < 50 ||
+    targetCompanyCount > 5000
+  ) {
+    return null;
+  }
+
+  if (
+    typeof leadsPerCompany !== "number" ||
+    leadsPerCompany < 1 ||
+    leadsPerCompany > 5
+  ) {
+    return null;
+  }
+
   return {
     industry: industry as string[],
     companySize,
     location: location as string[],
     targetRole: targetRole.trim(),
     icpPrompt: icpPrompt.trim(),
+    targetCompanyCount,
+    leadsPerCompany,
   };
 }

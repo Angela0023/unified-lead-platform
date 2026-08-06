@@ -7,6 +7,8 @@ export interface SearchInput {
   location: string[];
   targetRole: string;
   icpPrompt: string;
+  targetCompanyCount: number;
+  leadsPerCompany: number;
 }
 
 /** Database-friendly version of the search input. */
@@ -64,6 +66,15 @@ export interface SearchStatusResponse {
     emailsFound: number;
     emailsValid: number;
   };
+  qualityDistribution?: {
+    score1: number;
+    score2: number;
+    score3: number;
+    score4: number;
+    score5: number;
+    total: number;
+  } | null;
+  qualityWarnings?: string[] | null;
   createdAt: string;
   completedAt?: string | null;
   estimatedCompletion?: string | null;
@@ -73,6 +84,8 @@ export interface SearchStatusResponse {
     location: string[];
     targetRole: string;
     icpPrompt: string;
+    targetCompanyCount: number;
+    leadsPerCompany: number;
   };
 }
 

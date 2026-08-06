@@ -1,8 +1,5 @@
 import { prisma } from "../../lib/db";
-import { apolloClient } from "../../integrations/apollo/client";
-import { parseCompanySize } from "../../lib/constants";
-import { config } from "../../lib/config";
-import { guardApolloCredits } from "../../lib/credit-guards";
+import { DiscoveryOrchestrator } from "../../lib/discovery-orchestrator";
 import {
   completePhaseJob,
   enqueueNextPhase,
@@ -15,7 +12,8 @@ import {
 
 /**
  * Phase 1: Company Discovery (WORKFLOW.md Stage 3).
- * Queries Apollo for companies matching the search filters, saves them with
+ * Uses DiscoveryOrchestrator to query multiple sources (Apollo, Sales Navigator,
+ * Prospeo, Exa AI) with dry-run testing to save credits. Saves companies with
  * status DISCOVERED, then chains to company validation.
  *
  * Idempotent: if companies already exist for this search (crash recovery),
@@ -41,54 +39,45 @@ export async function handleCompanyDiscovery(searchId: string) {
       return;
     }
 
-    const size = parseCompanySize(search.companySize);
+    await updateJobProgress(job.id, 0);
 
-    // Cost guard: never start discovery if Apollo credits are too low
-    const requiredCredits = config.companiesPerSearch * 3 + 50;
-    await guardApolloCredits(requiredCredits);
+    const orchestrator = new DiscoveryOrchestrator();
 
-    const result = await apolloClient.searchCompanies({
-      industries: search.industry,
-      locations: search.location,
-      employeeCountMin: size?.min,
-      employeeCountMax: size?.max ?? null,
-      page: 1,
-      perPage: config.companiesPerSearch,
-    });
+    const searchInput = {
+      industry: search.industry,
+      companySize: search.companySize,
+      location: search.location,
+      targetRole: search.targetRole,
+      icpPrompt: search.icpPrompt,
+      targetCompanyCount: search.targetCompanyCount || 500,
+      leadsPerCompany: search.leadsPerCompany || 2,
+    };
 
-    const companies = result.companies.map((company) => ({
+    // Initial discovery (round 1)
+    // Start with ~20% buffer over target (account for expected rejections)
+    const initialNeeded = Math.ceil(
+      (search.targetCompanyCount || 500) * 1.2,
+    );
+
+    console.log(
+      `[pipeline] Starting discovery for ${searchId}: need ${initialNeeded} companies (target: ${search.targetCompanyCount || 500})`,
+    );
+
+    const companies = await orchestrator.discoverCompanies(
       searchId,
-      name: company.name,
-      website: company.domain || company.website || "",
-      industry: company.industry,
-      size: company.employeeCount,
-      location: company.location,
-      apolloId: company.id,
-      status: "DISCOVERED" as const,
-    }));
-
-    // Batch insert with checkpoint (BATCH_SIZE handled by createMany chunking)
-    const CHUNK = 50;
-    for (let i = 0; i < companies.length; i += CHUNK) {
-      const chunk = companies.slice(i, i + CHUNK);
-      await prisma.company.createMany({ data: chunk });
-      const stored = Math.min(i + CHUNK, companies.length);
-      await updateJobProgress(
-        job.id,
-        Math.round((stored / companies.length) * 100),
-      );
-      console.log(
-        `[pipeline] Discovery checkpoint: ${stored}/${companies.length} companies`,
-      );
-    }
+      searchInput,
+      1,
+      initialNeeded,
+    );
 
     await updateSearchProgress(searchId, "company-discovery", 15, {
       companiesFound: companies.length,
     });
+
     await completePhaseJob(job.id);
     await enqueueNextPhase("company-discovery", searchId);
     console.log(
-      `[pipeline] Discovery complete for ${searchId}: ${companies.length} companies (${result.totalEntries} total matches)`,
+      `[pipeline] Discovery complete for ${searchId}: ${companies.length} companies`,
     );
   } catch (error) {
     const message =

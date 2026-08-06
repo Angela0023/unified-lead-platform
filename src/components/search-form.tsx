@@ -70,6 +70,8 @@ function buildQueryString(input: SearchInput): string {
     location: input.location.join(","),
     targetRole: input.targetRole,
     icpPrompt: input.icpPrompt,
+    targetCompanyCount: String(input.targetCompanyCount),
+    leadsPerCompany: String(input.leadsPerCompany),
   });
   return params.toString();
 }
@@ -81,6 +83,8 @@ export function SearchForm() {
   const [location, setLocation] = useState<string[]>([]);
   const [targetRole, setTargetRole] = useState("");
   const [icpPrompt, setIcpPrompt] = useState("");
+  const [targetCompanyCount, setTargetCompanyCount] = useState(500);
+  const [leadsPerCompany, setLeadsPerCompany] = useState(2);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isVague, setIsVague] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -102,6 +106,12 @@ export function SearchForm() {
     if (icpPrompt.trim().length < MIN_ICP_LENGTH) {
       nextErrors.icpPrompt = `ICP prompt must be at least ${MIN_ICP_LENGTH} characters`;
     }
+    if (!targetCompanyCount || targetCompanyCount < 50 || targetCompanyCount > 5000) {
+      nextErrors.targetCompanyCount = "Target company count must be between 50 and 5000";
+    }
+    if (!leadsPerCompany || leadsPerCompany < 1 || leadsPerCompany > 5) {
+      nextErrors.leadsPerCompany = "Leads per company must be between 1 and 5";
+    }
 
     const lowerPrompt = icpPrompt.toLowerCase();
     setIsVague(
@@ -121,7 +131,7 @@ export function SearchForm() {
     }
     setIsSubmitting(true);
     router.push(
-      `/search/confirm?${buildQueryString({ industry, companySize, location, targetRole, icpPrompt })}`,
+      `/search/confirm?${buildQueryString({ industry, companySize, location, targetRole, icpPrompt, targetCompanyCount, leadsPerCompany })}`,
     );
   }
 
@@ -224,7 +234,68 @@ export function SearchForm() {
               <p className="text-sm text-destructive">{errors.targetRole}</p>
             )}
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="target-companies">
+              Target Company Count <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="target-companies"
+              type="number"
+              min={50}
+              max={5000}
+              step={50}
+              value={targetCompanyCount}
+              onChange={(e) => {
+                setTargetCompanyCount(Number(e.target.value));
+                setErrors((prev) => ({ ...prev, targetCompanyCount: "" }));
+              }}
+              placeholder="e.g., 1000"
+            />
+            <p className="text-xs text-muted-foreground">
+              We&apos;ll keep searching until we reach this count (accounting for rejections)
+            </p>
+            {errors.targetCompanyCount && (
+              <p className="text-sm text-destructive">{errors.targetCompanyCount}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="leads-per-company">
+              Decision Makers per Company <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={String(leadsPerCompany)}
+              onValueChange={(v) => {
+                setLeadsPerCompany(Number(v));
+                setErrors((prev) => ({ ...prev, leadsPerCompany: "" }));
+              }}
+            >
+              <SelectTrigger id="leads-per-company">
+                <SelectValue placeholder="Select..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 decision maker</SelectItem>
+                <SelectItem value="2">2 decision makers (recommended)</SelectItem>
+                <SelectItem value="3">3 decision makers</SelectItem>
+                <SelectItem value="4">4 decision makers</SelectItem>
+                <SelectItem value="5">5 decision makers</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.leadsPerCompany && (
+              <p className="text-sm text-destructive">{errors.leadsPerCompany}</p>
+            )}
+          </div>
         </div>
+
+        <Alert>
+          <Info className="h-4 w-4" />
+          <AlertTitle>Expected Output</AlertTitle>
+          <AlertDescription>
+            <strong>{targetCompanyCount} companies</strong> × <strong>{leadsPerCompany} decision makers</strong> ={" "}
+            <strong className="text-lg">{targetCompanyCount * leadsPerCompany} total leads</strong>
+          </AlertDescription>
+        </Alert>
 
         <div className="space-y-2">
           <Label htmlFor="icp-prompt">

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
+import { QualityStats } from "@/components/quality-stats";
 import { PHASES } from "@/lib/constants";
 import type { SearchStatusResponse } from "@/lib/types";
 
@@ -200,6 +201,13 @@ export function ProgressView({ searchId }: { searchId: string }) {
           </div>
         </CardContent>
       </Card>
+
+      {data.qualityDistribution && (
+        <QualityStats
+          distribution={data.qualityDistribution}
+          warnings={data.qualityWarnings || []}
+        />
+      )}
 
       {isComplete && (
         <div className="flex flex-col gap-3 sm:flex-row">

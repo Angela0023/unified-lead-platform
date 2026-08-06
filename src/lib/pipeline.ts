@@ -1,6 +1,7 @@
 import { prisma } from "./db";
 import { enqueueSearchJob, type JobName } from "./queue";
 import { getPhaseMeta } from "./constants";
+import { triggerBackfillIfNeeded } from "./backfill";
 
 /** Next phase in the pipeline (ARCHITECTURE.md job flow). */
 const NEXT_PHASE: Partial<Record<JobName, JobName>> = {
@@ -11,9 +12,27 @@ const NEXT_PHASE: Partial<Record<JobName, JobName>> = {
 };
 
 export async function enqueueNextPhase(jobType: JobName, searchId: string) {
+  // Special handling after company-validation: check if backfill is needed
+  if (jobType === "company-validation") {
+    const backfillTriggered = await triggerBackfillIfNeeded(searchId);
+
+    if (backfillTriggered) {
+      console.log(
+        `[pipeline] Backfill triggered, staying in validation phase`,
+      );
+      return; // Don't proceed to next phase yet
+    }
+  }
+
   const next = NEXT_PHASE[jobType];
   if (next) {
     await enqueueSearchJob(next, searchId);
+  } else {
+    // No next phase - mark search as complete
+    await prisma.search.update({
+      where: { id: searchId },
+      data: { status: "COMPLETED", completedAt: new Date() },
+    });
   }
 }
 

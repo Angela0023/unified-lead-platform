@@ -42,6 +42,18 @@ export const config = {
     return process.env.MILLION_VERIFIER_API_KEY ?? "";
   },
 
+  get prospeoApiKey(): string {
+    return process.env.PROSPEO_API_KEY ?? "";
+  },
+
+  get exaApiKey(): string {
+    return process.env.EXA_API_KEY ?? "";
+  },
+
+  get apifyApiKey(): string {
+    return process.env.APIFY_API_KEY ?? "";
+  },
+
   get appUrl(): string {
     return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
   },

@@ -1,6 +1,5 @@
 import { prisma } from "../../lib/db";
 import { apolloClient } from "../../integrations/apollo/client";
-import { MAX_CONTACTS_PER_COMPANY } from "../../lib/constants";
 import {
   completePhaseJob,
   enqueueNextPhase,
@@ -56,8 +55,8 @@ function toDomain(website: string): string {
 /**
  * Phase 3: Contact Discovery (WORKFLOW.md Stage 5).
  * Finds decision makers (matching the target role) at each validated
- * company, de-duplicates them, and keeps the top MAX_CONTACTS_PER_COMPANY.
- * Checkpoint saved after every 50 companies.
+ * company, de-duplicates them, and keeps the number specified by
+ * search.leadsPerCompany. Checkpoint saved after every 50 companies.
  */
 export async function handleContactDiscovery(searchId: string) {
   const search = await prisma.search.findUniqueOrThrow({
@@ -93,10 +92,11 @@ export async function handleContactDiscovery(searchId: string) {
 
       for (const company of batch) {
         try {
+          const maxContactsPerCompany = search.leadsPerCompany || 2; // User-specified
           const people = await apolloClient.findContacts({
             domain: toDomain(company.website),
             titles: buildTitleVariants(search.targetRole),
-            limit: MAX_CONTACTS_PER_COMPANY,
+            limit: maxContactsPerCompany,
           });
 
           // De-duplication: keep distinct names, max 2 per company
