@@ -9,34 +9,121 @@
 
 ## [Unreleased]
 
-### Added
+---
 
-- **DEPLOYMENT.md** - Comprehensive deployment guide for Sprint 14
-  - Complete Vercel setup instructions with screenshots guidance
-  - All 7 API keys documented (Apollo, DeepSeek, Firecrawl, Million Verifier, Prospeo, Expandi, BounceBan)
-  - Supabase database setup and migration steps
-  - Railway Redis + background workers setup
-  - Custom domain configuration (leads.corsyx.com via Cloudflare DNS)
-  - SSL certificate setup (automatic via Vercel)
-  - Troubleshooting guide for common deployment issues
-  - Monitoring, backup, and disaster recovery procedures
-  - Scaling considerations and cost monitoring
-  - Post-MVP multi-source enablement instructions
+## [0.4.0] - 2026-08-05
 
-### Decisions
+### Added - Enhanced Discovery System
 
-- **Multi-source infrastructure ready from day 1** - Angela confirmed "Apollo database is not good" based on real-world experience. MVP uses Apollo only (simpler), but all 7 API keys will be added to Vercel environment from start. Infrastructure built to support Prospeo/Expandi/BounceBan fallback - easy to enable post-MVP (no refactoring needed).
+- **Multi-source discovery orchestration** - Smart dry-run system tests sources before spending credits
+  - Apollo (priority 1, $0.01/company) - primary source
+  - Apify/Sales Navigator (priority 2, $0.05/company) - LinkedIn data
+  - Prospeo (priority 3, $0.02/company) - better filters
+  - Exa (priority 4, $0.03/company) - semantic search for tricky ICPs
+  - Discovery orchestrator tries sources in priority order (cheapest first)
+  - Only uses sources that return results from 5-10 sample dry-run
+  - All attempts tracked in new DiscoveryAttempt table
 
-### Why These Changes
+- **Quality-aware backfill** - Automatically fetches more companies if too many rejections
+  - Triggers if >40% of companies score 2 (warns user)
+  - Max 5 backfill rounds to prevent infinite loops
+  - Tracks rounds in Company.discoveryRound field
 
-- **DEPLOYMENT.md creation:** Angela setting up Vercel now (ahead of Sprint 14) to understand deployment process and prepare custom domain. Guide ensures she can complete deployment when MVP ready without surprises.
-- **All API keys upfront:** Even though MVP uses Apollo only, adding all keys to Vercel now means post-MVP features (multi-source enrichment) can be enabled with code changes only - no redeployment or environment reconfiguration needed.
+- **Quality tracking & visualization**
+  - QualityStats UI component showing score distribution (1-5)
+  - Quality rules calculate average score and warnings
+  - Enhanced progress view with quality metrics
+  - Real-time feedback on search quality
+
+- **Database schema enhancements**
+  - Added `targetCompanyCount`, `leadsPerCompany` to Search model
+  - Added `discoverySource`, `discoveryRound` to Company model
+  - New `DiscoveryAttempt` table tracking all discovery attempts
+  - Migration: `20260803075038_enhanced_discovery_system`
+
+- **Integration clients** - Full implementations for multi-source discovery
+  - Apify client (LinkedIn Sales Navigator scraping)
+  - Exa client (semantic company search)
+  - Prospeo client (company search with advanced filters)
+  - All with proper error handling, auth checks, credit tracking
+
+### Added - Professional Design System
+
+- **DESIGN.md** - Complete design requirements and implementation guide
+  - Color palette (dark: #0a0a0a, light: #ffffff, accent: #6366f1 indigo)
+  - Typography scale (display 60px, h1 36px, body 16px)
+  - Component patterns (buttons, cards, inputs, forms)
+  - Accessibility requirements (4.5:1 contrast, keyboard nav, ARIA)
+  - Responsive breakpoints and mobile-first approach
+
+- **Dark/light mode support** - Full theme switching with next-themes
+  - ThemeToggle component with smooth transitions
+  - ThemeProvider wrapping entire app
+  - Consistent across all pages (landing, search, progress, results)
+  - System preference detection with manual override
+
+- **Redesigned landing page** - Professional hero section matching mockup
+  - Badge ("Trusted by Growth Agencies")
+  - Large hero: "Smart Lead Generation That Actually Works"
+  - Supporting copy emphasizing 160x time saved, 70% quality, $20/search
+  - Dual CTAs (Find Leads + View Demo)
+  - Stats showcase (160x, 70%, $20)
+  - Theme toggle in top-right corner
+
+- **Enhanced UI components**
+  - All pages now support dark/light mode
+  - Improved typography (Geist Sans/Mono fonts)
+  - Better spacing and visual hierarchy
+  - Lucide React icons throughout
+
+### Changed
+
+- Updated all pages to include theme toggle
+- Improved form design with cleaner labels and helper text
+- Enhanced progress view with quality stats display
+- Better visual feedback for search status
+
+### Dependencies
+
+- Added `next-themes` for dark mode support
+- Added `lucide-react` for icons (replacing partial icon usage)
 
 ### Status
 
-- Environment setup: ✅ Complete (Sprint 2)
-- Search form UI: 🔄 In progress (Sprint 3 - DeepSeek building)
-- Deployment preparation: ✅ Guide ready, Angela exploring Vercel
+- MVP Complete: ✅ All stages (0-7, 9) implemented
+- Design System: ✅ Professional dark/light mode
+- Multi-source Discovery: ✅ Implemented (Apollo, Apify, Exa, Prospeo)
+- Quality Tracking: ✅ Implemented
+- Ready for: Production deployment (pending API keys + accounts)
+
+### Next Steps
+
+- Deploy to Vercel/Supabase/Railway (requires accounts + 7 API keys)
+- Test with real APIs (currently in DEMO_MODE)
+- Post-MVP features (v1.1.0):
+  - Multi-source email enrichment cascade
+  - BounceBan secondary validation for risky emails
+  - Rollback/re-run capability
+  - Self-healing job monitoring
+  - Learning loop (success rate tracking)
+
+---
+
+## [0.3.0] - 2026-08-02
+
+### Added
+
+- **DEPLOYMENT.md** - Comprehensive deployment guide for Sprint 14
+- **Stage 0: Search form UI** (/search) with all filters and ICP prompt
+- **Stage 1: Pre-flight checks** - API health, credit balances, infrastructure
+- **Stage 2: Cost & time estimation** with approval UI
+- **Stage 3: Company discovery** via Apollo
+- **Stage 4: Company validation** via Firecrawl + DeepSeek AI (score 1-5)
+- **Stage 5: Contact discovery** via Apollo
+- **Stage 6: Email enrichment** via Apollo (with crash recovery)
+- **Stage 7: Email validation** via Million Verifier
+- **Stage 9: Reporting** with results table, CSV export
+- **Progress tracking UI** with real-time updates
 
 ---
 
