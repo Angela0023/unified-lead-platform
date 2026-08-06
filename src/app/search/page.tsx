@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SearchForm } from "@/components/search-form";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export const metadata: Metadata = {
   title: "New Search - Unified Lead Platform",
@@ -11,19 +12,24 @@ export const metadata: Metadata = {
 
 export default function SearchPage() {
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">New Search</h1>
-          <p className="mt-1 text-muted-foreground">
-            Set your filters and describe your ideal customer profile.
-          </p>
-        </div>
-        <Button asChild variant="ghost">
-          <Link href="/">← Home</Link>
-        </Button>
+    <>
+      <div className="absolute right-6 top-6">
+        <ThemeToggle />
       </div>
-      <SearchForm />
-    </main>
+      <main className="mx-auto max-w-4xl px-6 py-10">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">New Search</h1>
+            <p className="mt-1 text-muted-foreground">
+              Set your filters and describe your ideal customer profile.
+            </p>
+          </div>
+          <Button asChild variant="ghost">
+            <Link href="/">← Home</Link>
+          </Button>
+        </div>
+        <SearchForm />
+      </main>
+    </>
   );
 }
