@@ -142,10 +142,10 @@ export function SearchForm() {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label htmlFor="industry">
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="grid gap-8 md:grid-cols-2">
+          <div className="space-y-3">
+            <Label htmlFor="industry" className="text-base font-semibold">
               Industry <span className="text-destructive">*</span>
             </Label>
             <MultiSelect
@@ -162,8 +162,8 @@ export function SearchForm() {
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="company-size">
+          <div className="space-y-3">
+            <Label htmlFor="company-size" className="text-base font-semibold">
               Company Size <span className="text-destructive">*</span>
             </Label>
             <Select
@@ -173,10 +173,10 @@ export function SearchForm() {
                 setErrors((prev) => ({ ...prev, companySize: "" }));
               }}
             >
-              <SelectTrigger id="company-size">
+              <SelectTrigger id="company-size" className="h-12">
                 <SelectValue placeholder="Select company size..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" className="z-50">
                 {COMPANY_SIZE_OPTIONS.map((option) => (
                   <SelectItem key={option.label} value={option.label}>
                     {option.label} employees
@@ -189,8 +189,8 @@ export function SearchForm() {
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="location">
+          <div className="space-y-3">
+            <Label htmlFor="location" className="text-base font-semibold">
               Location <span className="text-destructive">*</span>
             </Label>
             <MultiSelect
@@ -207,8 +207,8 @@ export function SearchForm() {
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="target-role">
+          <div className="space-y-3">
+            <Label htmlFor="target-role" className="text-base font-semibold">
               Target Role <span className="text-destructive">*</span>
             </Label>
             <Tooltip>
@@ -222,6 +222,7 @@ export function SearchForm() {
                       setTargetRole(event.target.value);
                       setErrors((prev) => ({ ...prev, targetRole: "" }));
                     }}
+                    className="h-12"
                   />
                 </div>
               </TooltipTrigger>
@@ -235,8 +236,8 @@ export function SearchForm() {
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="target-companies">
+          <div className="space-y-3">
+            <Label htmlFor="target-companies" className="text-base font-semibold">
               Target Company Count <span className="text-destructive">*</span>
             </Label>
             <Input
@@ -250,7 +251,8 @@ export function SearchForm() {
                 setTargetCompanyCount(Number(e.target.value));
                 setErrors((prev) => ({ ...prev, targetCompanyCount: "" }));
               }}
-              placeholder="e.g., 1000"
+              placeholder="e.g., 500"
+              className="h-12"
             />
             <p className="text-xs text-muted-foreground">
               We&apos;ll keep searching until we reach this count (accounting for rejections)
@@ -260,8 +262,8 @@ export function SearchForm() {
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="leads-per-company">
+          <div className="space-y-3">
+            <Label htmlFor="leads-per-company" className="text-base font-semibold">
               Decision Makers per Company <span className="text-destructive">*</span>
             </Label>
             <Select
@@ -271,10 +273,10 @@ export function SearchForm() {
                 setErrors((prev) => ({ ...prev, leadsPerCompany: "" }));
               }}
             >
-              <SelectTrigger id="leads-per-company">
+              <SelectTrigger id="leads-per-company" className="h-12">
                 <SelectValue placeholder="Select..." />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent position="popper" className="z-50">
                 <SelectItem value="1">1 decision maker</SelectItem>
                 <SelectItem value="2">2 decision makers (recommended)</SelectItem>
                 <SelectItem value="3">3 decision makers</SelectItem>
@@ -297,8 +299,8 @@ export function SearchForm() {
           </AlertDescription>
         </Alert>
 
-        <div className="space-y-2">
-          <Label htmlFor="icp-prompt">
+        <div className="space-y-3">
+          <Label htmlFor="icp-prompt" className="text-base font-semibold">
             ICP Prompt (describe your ideal customer){" "}
             <span className="text-destructive">*</span>
           </Label>
@@ -311,6 +313,7 @@ export function SearchForm() {
               setErrors((prev) => ({ ...prev, icpPrompt: "" }));
             }}
             rows={6}
+            className="resize-none"
           />
           {errors.icpPrompt && (
             <p className="text-sm text-destructive">{errors.icpPrompt}</p>
