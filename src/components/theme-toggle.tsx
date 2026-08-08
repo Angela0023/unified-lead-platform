@@ -5,27 +5,28 @@ import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // Avoid hydration mismatch
   useEffect(() => {
     setMounted(true);
   }, []);
 
   if (!mounted) {
     return (
-      <div className="h-9 w-9 rounded-lg border border-border bg-background" />
+      <div className="h-10 w-10 rounded-md bg-gray-800/50" />
     );
   }
 
+  const isDark = resolvedTheme === "dark" || theme === "dark";
+
   return (
     <button
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background transition-colors hover:bg-accent"
+      onClick={() => setTheme(isDark ? "light" : "dark")}
+      className="flex h-10 w-10 items-center justify-center rounded-md bg-gray-800/50 text-gray-400 transition-all hover:bg-gray-700/50 hover:text-white"
       aria-label="Toggle theme"
     >
-      {theme === "dark" ? (
+      {isDark ? (
         <Moon className="h-5 w-5" />
       ) : (
         <Sun className="h-5 w-5" />
