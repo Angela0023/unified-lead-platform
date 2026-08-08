@@ -8,8 +8,7 @@ const BASE_URL = "https://api.deepseek.com";
 
 /**
  * Company validation prompt template (WORKFLOW.md Stage 4).
- * The model receives scraped website content plus the user's ICP and
- * returns a JSON score (1-5), reasoning, and detected conflicts.
+ * Validates companies against Intelsol's B2B lead generation ICP.
  */
 export function buildValidationPrompt(
   company: {
@@ -19,33 +18,55 @@ export function buildValidationPrompt(
   },
   icpPrompt: string,
 ): string {
-  return `You are evaluating companies against an ideal customer profile (ICP).
+  const scrapedText = company.scrapedContent.slice(0, 6000);
+  const hasScrapedContent = scrapedText.trim().length > 100;
+
+  return `Determine whether this company matches the ICP for B2B lead generation services.
 
 Company Information:
 Name: ${company.name}
 Website: ${company.website}
-Scraped Content: ${company.scrapedContent.slice(0, 6000)}
+${hasScrapedContent ? `Scraped Content:\n${scrapedText}` : `Scraped Content: [INSUFFICIENT DATA - YOU MUST ANALYZE THE WEBSITE DIRECTLY]\nWebsite URL: ${company.website}\n\nIMPORTANT: The scraped content is empty or incomplete. You MUST infer information from the website URL, company name, and any available context. Do NOT return an empty result. Make your best assessment based on available information.`}
 
-Ideal Customer Profile:
+Ideal Customer Profile (ICP):
 ${icpPrompt}
 
-Task:
-1. Score this company from 1-5:
-   - 1 = Not a fit at all (completely wrong industry/size/offering)
-   - 2 = Potential fit (some overlap but missing key criteria)
-   - 3 = Okay fit (meets basic criteria, not ideal)
-   - 4 = Good fit (meets most criteria, strong match)
-   - 5 = Perfect fit (meets all criteria, ideal customer)
+Evaluation Criteria:
+A match should be:
+- B2B company (sells to other businesses, NOT consumers)
+- Offers one of: Service company (IT services, consulting), SaaS product, or B2B physical/industrial products
+- High-ticket offers ($20K+ per deal)
+- Active sales process (not just passive/distributor model)
+- Has a clear value proposition on their website
+- Could benefit from outbound email campaigns
+- Geographic focus: Belgium, Netherlands, Germany, Austria, Switzerland, France (primary); UK, Nordics, other EU (secondary)
 
-2. Provide brief reasoning (2-3 sentences) explaining the score.
+NOT a match if:
+- B2C company (sells to consumers)
+- eCommerce selling low-ticket consumer goods
+- One-man band (solo founder with no team)
+- Very large enterprises (500+ employees)
+- Recruitment/staffing agencies
+- Sells only through distributors (no direct sales)
+- Commodity/low-margin businesses
+- Website is outdated or broken
+- Already has large in-house SDR/sales team
+- Non-EU website with no European market presence
 
-3. Identify any conflicting signals (e.g., website says "enterprise focus" but pricing suggests SMB).
+Scoring Guide:
+1 = REJECTED - Clearly NOT a fit (B2C, wrong geography, wrong business model, or fails multiple critical criteria)
+2 = WEAK FIT - Some overlap but missing key criteria (e.g., right industry but wrong geography, or B2B but too small/large)
+3 = POSSIBLE FIT - Meets basic criteria but unclear on key details (needs more research, borderline on ticket size or sales model)
+4 = GOOD FIT - Meets most criteria, strong match for outbound campaigns
+5 = PERFECT FIT - Ideal customer, meets all criteria, high priority target
+
+CRITICAL: You MUST return a score and reasoning even if information is limited. Use company name, website domain, and any available context to make an informed assessment. Never return empty results.
 
 Return ONLY JSON in this exact shape:
 {
-  "score": 4,
-  "reasoning": "Brief explanation...",
-  "conflicts": ["Conflicting signal 1", "Conflicting signal 2"]
+  "score": 3,
+  "reasoning": "Brief explanation of why this score was assigned (2-3 sentences)",
+  "conflicts": ["Any conflicting signals found, e.g., 'Website says enterprise but pricing suggests SMB'"]
 }`;
 }
 
