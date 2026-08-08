@@ -28,6 +28,7 @@ export async function POST(request: Request) {
         path: "/",
       });
 
+      console.log("[AUTH] Login successful, cookie set");
       return response;
     }
 

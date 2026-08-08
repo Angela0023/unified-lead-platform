@@ -10,14 +10,16 @@ const publicRoutes = ["/", "/login"];
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow public routes
-  if (publicRoutes.includes(pathname)) {
+  // Allow public routes and API routes
+  if (publicRoutes.includes(pathname) || pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
 
   // Check authentication
   const session = request.cookies.get(AUTH_COOKIE);
   const isAuthenticated = session?.value === AUTH_TOKEN;
+
+  console.log("[MIDDLEWARE]", pathname, "Cookie:", session?.value, "Auth:", isAuthenticated);
 
   // If not authenticated, redirect to login
   if (!isAuthenticated) {
