@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, Loader2, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -26,8 +24,10 @@ export default function LoginPage() {
 
       if (response.ok) {
         toast.success("Login successful");
-        router.push("/search");
-        router.refresh();
+        // Use window.location for hard navigation to ensure cookies are read
+        setTimeout(() => {
+          window.location.href = "/search";
+        }, 500);
       } else {
         const data = await response.json();
         toast.error(data.error || "Invalid password");

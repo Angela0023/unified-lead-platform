@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
-import { verifyPassword, setAuthCookie } from "@/lib/auth";
+import { verifyPassword } from "@/lib/auth";
+
+const AUTH_COOKIE = "auth_session";
+const AUTH_TOKEN = "authenticated";
 
 export async function POST(request: Request) {
   try {
@@ -14,8 +17,18 @@ export async function POST(request: Request) {
     }
 
     if (verifyPassword(password)) {
-      await setAuthCookie();
-      return NextResponse.json({ success: true });
+      const response = NextResponse.json({ success: true });
+
+      // Set cookie directly on response
+      response.cookies.set(AUTH_COOKIE, AUTH_TOKEN, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: "/",
+      });
+
+      return response;
     }
 
     return NextResponse.json(
