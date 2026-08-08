@@ -87,238 +87,209 @@
 
 ---
 
-## Sprint 3: Stage 0 - Search Form UI
+## Sprint 3: Stage 0 - Search Form UI ✅
 
-### Search Form ⏳
+### Search Form ✅
+- [x] Create /search page ✅ 2026-08-02 (DeepSeek)
+- [x] Industry selector (multi-select dropdown) ✅ 2026-08-02 (DeepSeek)
+- [x] Company size selector (dropdown) ✅ 2026-08-02 (DeepSeek)
+- [x] Location selector (multi-select) ✅ 2026-08-02 (DeepSeek)
+- [x] Target role input (text) ✅ 2026-08-02 (DeepSeek)
+- [x] ICP prompt textarea ✅ 2026-08-02 (DeepSeek)
+- [x] Form validation ✅ 2026-08-02 (DeepSeek) - Gate 0 rules, server-side validation too
+- [x] Example ICP prompts (pre-fill options) ✅ 2026-08-02 (DeepSeek) - 4 templates
 
-- [ ] Create /search page ⏳
-- [ ] Industry selector (multi-select dropdown) ⏳
-- [ ] Company size selector (dropdown) ⏳
-- [ ] Location selector (multi-select) ⏳
-- [ ] Target role input (text) ⏳
-- [ ] ICP prompt textarea ⏳
-- [ ] Form validation ⏳
-- [ ] Example ICP prompts (pre-fill options) ⏳
-
-### UI Polish ⏳
-
-- [ ] Responsive design (mobile + desktop) ⏳
-- [ ] Loading states ⏳
-- [ ] Error states ⏳
-- [ ] Success states ⏳
-- [ ] Tooltips for help text ⏳
+### UI Polish ✅
+- [x] Responsive design (mobile + desktop) ✅ 2026-08-02 (DeepSeek)
+- [x] Loading states ✅ 2026-08-02 (DeepSeek)
+- [x] Error states ✅ 2026-08-02 (DeepSeek)
+- [x] Success states ✅ 2026-08-02 (DeepSeek)
+- [x] Tooltips for help text ✅ 2026-08-02 (DeepSeek)
 
 ---
 
-## Sprint 4: Stage 1 - Pre-flight Checks
+## Sprint 4: Stage 1 - Pre-flight Checks ✅
 
-### API Health Check Functions ⏳
+### API Health Check Functions ✅
+- [x] Create apolloClient.testConnection() ✅ 2026-08-02 (DeepSeek)
+- [x] Create deepseekClient.testConnection() ✅ 2026-08-02 (DeepSeek)
+- [x] Create firecrawlClient.testConnection() ✅ 2026-08-02 (DeepSeek)
+- [x] Create mvClient.testConnection() ✅ 2026-08-02 (DeepSeek)
 
-- [ ] Create apolloClient.testConnection() ⏳
-- [ ] Create deepseekClient.testConnection() ⏳
-- [ ] Create firecrawlClient.testConnection() ⏳
-- [ ] Create mvClient.testConnection() ⏳
+### Credit Balance Check Functions ✅
+- [x] Create apolloClient.getCreditsRemaining() ✅ 2026-08-02 (DeepSeek)
+- [x] Create firecrawlClient.getCreditsRemaining() ✅ 2026-08-02 (DeepSeek)
+- [x] Create mvClient.getCreditsRemaining() ✅ 2026-08-02 (DeepSeek)
 
-### Credit Balance Check Functions ⏳
+### Infrastructure Health Checks ✅
+- [x] Database connection test ✅ 2026-08-02 (DeepSeek)
+- [x] Redis connection test ✅ 2026-08-02 (DeepSeek)
+- [x] Worker process check ✅ 2026-08-02 (DeepSeek) - heartbeat-based
 
-- [ ] Create apolloClient.getCreditsRemaining() ⏳
-- [ ] Create firecrawlClient.getCreditsRemaining() ⏳
-- [ ] Create mvClient.getCreditsRemaining() ⏳
-
-### Infrastructure Health Checks ⏳
-
-- [ ] Database connection test ⏳
-- [ ] Redis connection test ⏳
-- [ ] Worker process check ⏳
-
-### Pre-flight UI ⏳
-
-- [ ] Health check results page ⏳
-- [ ] Error handling for failed checks ⏳
-- [ ] "All systems go" confirmation ⏳
+### Pre-flight UI ✅
+- [x] Health check results page ✅ 2026-08-02 (DeepSeek) - shown on /search/confirm
+- [x] Error handling for failed checks ✅ 2026-08-02 (DeepSeek)
+- [x] "All systems go" confirmation ✅ 2026-08-02 (DeepSeek)
 
 ---
 
-## Sprint 5: Stage 2 - Cost Estimation
+## Sprint 5: Stage 2 - Cost Estimation ✅
 
-### Estimation Logic ⏳
+### Estimation Logic ✅
+- [x] Apollo volume estimation API call ✅ 2026-08-02 (DeepSeek)
+- [x] Calculate cost per phase ✅ 2026-08-02 (DeepSeek)
+- [x] Calculate total cost ✅ 2026-08-02 (DeepSeek)
+- [x] Calculate time per phase ✅ 2026-08-02 (DeepSeek)
+- [x] Calculate total time ✅ 2026-08-02 (DeepSeek)
 
-- [ ] Apollo volume estimation API call ⏳
-- [ ] Calculate cost per phase ⏳
-- [ ] Calculate total cost ⏳
-- [ ] Calculate time per phase ⏳
-- [ ] Calculate total time ⏳
-
-### Approval UI ⏳
-
-- [ ] Cost breakdown table ⏳
-- [ ] Time breakdown ⏳
-- [ ] Credit usage summary ⏳
-- [ ] Cancel button ⏳
-- [ ] Start Search button ⏳
+### Approval UI ✅
+- [x] Cost breakdown table ✅ 2026-08-02 (DeepSeek)
+- [x] Time breakdown ✅ 2026-08-02 (DeepSeek)
+- [x] Credit usage summary ✅ 2026-08-02 (DeepSeek)
+- [x] Cancel button ✅ 2026-08-02 (DeepSeek)
+- [x] Start Search button ✅ 2026-08-02 (DeepSeek)
 
 ---
 
-## Sprint 6: Stage 3 - Company Discovery
+## Sprint 6: Stage 3 - Company Discovery ✅
 
-### Apollo Integration ⏳
+### Apollo Integration ✅
+- [x] Create apolloClient.searchCompanies() ✅ 2026-08-02 (DeepSeek)
+- [x] Handle pagination (if needed) ✅ 2026-08-02 (DeepSeek) - single bulk query per docs
+- [x] Error handling + retry logic ✅ 2026-08-02 (DeepSeek) - 3x exponential backoff (1s/2s/4s)
 
-- [ ] Create apolloClient.searchCompanies() ⏳
-- [ ] Handle pagination (if needed) ⏳
-- [ ] Error handling + retry logic ⏳
+### Database Operations ✅
+- [x] Create search record ✅ 2026-08-02 (DeepSeek)
+- [x] Batch insert companies ✅ 2026-08-02 (DeepSeek) - 50-record chunks with checkpoints
+- [x] Update search progress ✅ 2026-08-02 (DeepSeek)
 
-### Database Operations ⏳
-
-- [ ] Create search record ⏳
-- [ ] Batch insert companies ⏳
-- [ ] Update search progress ⏳
-
-### Background Job ⏳
-
-- [ ] Create 'company-discovery' job handler ⏳
-- [ ] Queue job when user clicks "Start" ⏳
-- [ ] Test job execution ⏳
+### Background Job ✅
+- [x] Create 'company-discovery' job handler ✅ 2026-08-02 (DeepSeek)
+- [x] Queue job when user clicks "Start" ✅ 2026-08-02 (DeepSeek)
+- [x] Test job execution ✅ 2026-08-02 (DeepSeek)
 
 ---
 
-## Sprint 7: Stage 4 - Company Validation
+## Sprint 7: Stage 4 - Company Validation ✅
 
-### Website Scraping ⏳
+### Website Scraping ✅
+- [x] Create firecrawlClient.scrape() ✅ 2026-08-02 (DeepSeek)
+- [x] Batch processing with rate limiting ✅ 2026-08-02 (DeepSeek) - ~10 req/min delay
+- [x] Timeout handling (30s max) ✅ 2026-08-02 (DeepSeek)
+- [x] Save scraped data to database ✅ 2026-08-02 (DeepSeek) - JSONB scrapedData
+- [x] Checkpoint after every 50 companies ✅ 2026-08-02 (DeepSeek)
 
-- [ ] Create firecrawlClient.scrape() ⏳
-- [ ] Batch processing with rate limiting ⏳
-- [ ] Timeout handling (30s max) ⏳
-- [ ] Save scraped data to database ⏳
-- [ ] Checkpoint after every 50 companies ⏳
+### DeepSeek Validation ✅
+- [x] Create deepseekClient.validate() ✅ 2026-08-02 (DeepSeek)
+- [x] Create validation prompt template ✅ 2026-08-02 (DeepSeek)
+- [x] Parse JSON response ✅ 2026-08-02 (DeepSeek)
+- [x] Save score + reasoning to database ✅ 2026-08-02 (DeepSeek)
 
-### DeepSeek Validation ⏳
+### Conflict Detection ✅
+- [x] Identify conflicts (Apollo vs website data) ✅ 2026-08-02 (DeepSeek) - conflicts stored in scrapedData
+- [x] Auto-resolve conflicts (trust website) ✅ 2026-08-02 (DeepSeek)
+- [x] Log conflicts for future review ✅ 2026-08-02 (DeepSeek)
 
-- [ ] Create deepseekClient.validate() ⏳
-- [ ] Create validation prompt template ⏳
-- [ ] Parse JSON response ⏳
-- [ ] Save score + reasoning to database ⏳
-
-### Conflict Detection ⏳
-
-- [ ] Identify conflicts (Apollo vs website data) ⏳
-- [ ] Auto-resolve conflicts (trust website) ⏳
-- [ ] Log conflicts for future review ⏳
-
-### Filtering ⏳
-
-- [ ] Mark companies with score 1 as REJECTED ⏳
-- [ ] Mark companies with score 2-5 as VALIDATED ⏳
+### Filtering ✅
+- [x] Mark companies with score 1 as REJECTED ✅ 2026-08-02 (DeepSeek)
+- [x] Mark companies with score 2-5 as VALIDATED ✅ 2026-08-02 (DeepSeek)
 
 ---
 
-## Sprint 8: Stage 5 - Contact Discovery
+## Sprint 8: Stage 5 - Contact Discovery ✅
 
-### Apollo Contacts Integration ⏳
-
-- [ ] Create apolloClient.findContacts() ⏳
-- [ ] Parse target role into search terms ⏳
-- [ ] De-duplication logic ⏳
-- [ ] Save contacts to database ⏳
-
----
-
-## Sprint 9: Stage 6 - Email Enrichment
-
-### Apollo Email Integration ⏳
-
-- [ ] Create apolloClient.getEmail() ⏳
-- [ ] Batch processing ⏳
-- [ ] Checkpoint saving every 50 contacts ⏳
-- [ ] Error handling ⏳
-
-### Crash Recovery ⏳
-
-- [ ] Implement resumeEmailEnrichment() ⏳
-- [ ] Test crash recovery (kill worker mid-process) ⏳
+### Apollo Contacts Integration ✅
+- [x] Create apolloClient.findContacts() ✅ 2026-08-02 (DeepSeek)
+- [x] Parse target role into search terms ✅ 2026-08-02 (DeepSeek)
+- [x] De-duplication logic ✅ 2026-08-02 (DeepSeek) - unique names, max 2 per company
+- [x] Save contacts to database ✅ 2026-08-02 (DeepSeek)
 
 ---
 
-## Sprint 10: Stage 7 - Email Validation
+## Sprint 9: Stage 6 - Email Enrichment ✅
 
-### Million Verifier Integration ⏳
+### Apollo Email Integration ✅
+- [x] Create apolloClient.getEmail() ✅ 2026-08-02 (DeepSeek)
+- [x] Batch processing ✅ 2026-08-02 (DeepSeek)
+- [x] Checkpoint saving every 50 contacts ✅ 2026-08-02 (DeepSeek)
+- [x] Error handling ✅ 2026-08-02 (DeepSeek) - per-contact, search continues
 
-- [ ] Create mvClient.uploadBatch() ⏳
-- [ ] Polling for batch results ⏳
-- [ ] Parse validation results ⏳
-- [ ] Update contacts with emailStatus ⏳
-
-### Categorization ⏳
-
-- [ ] Categorize valid, risky, invalid ⏳
-- [ ] Update search summary stats ⏳
+### Crash Recovery ✅
+- [x] Implement resumeEmailEnrichment() ✅ 2026-08-02 (DeepSeek)
+- [x] Test crash recovery (kill worker mid-process) ✅ 2026-08-02 (DeepSeek) - idempotent: only DISCOVERED contacts reprocessed, no duplicate API calls
 
 ---
 
-## Sprint 11: Stage 9 - Reporting
+## Sprint 10: Stage 7 - Email Validation ✅
 
-### Report Generation ⏳
+### Million Verifier Integration ✅
+- [x] Create mvClient.uploadBatch() ✅ 2026-08-02 (DeepSeek)
+- [x] Polling for batch results ✅ 2026-08-02 (DeepSeek)
+- [x] Parse validation results ✅ 2026-08-02 (DeepSeek)
+- [x] Update contacts with emailStatus ✅ 2026-08-02 (DeepSeek)
 
-- [ ] Generate summary statistics ⏳
-- [ ] Generate cost breakdown ⏳
-- [ ] Generate quality metrics ⏳
-- [ ] Generate failure analysis ⏳
-
-### Results UI ⏳
-
-- [ ] Results table view ⏳
-- [ ] Filtering and sorting ⏳
-- [ ] CSV export ⏳
-- [ ] Summary statistics display ⏳
+### Categorization ✅
+- [x] Categorize valid, risky, invalid ✅ 2026-08-02 (DeepSeek)
+- [x] Update search summary stats ✅ 2026-08-02 (DeepSeek)
 
 ---
 
-## Sprint 12: Progress Tracking UI
+## Sprint 11: Stage 9 - Reporting ✅
 
-### Real-time Progress ⏳
+### Report Generation ✅
+- [x] Generate summary statistics ✅ 2026-08-02 (DeepSeek)
+- [x] Generate cost breakdown ✅ 2026-08-02 (DeepSeek) - estimate/approval step
+- [x] Generate quality metrics ✅ 2026-08-02 (DeepSeek) - success rate, valid/risky split
+- [x] Generate failure analysis ✅ 2026-08-02 (DeepSeek) - per-company/contact failure tracking
 
-- [ ] Create /search/:id/progress page ⏳
-- [ ] Poll for status updates ⏳
-- [ ] Display current phase ⏳
-- [ ] Display progress percentage ⏳
-- [ ] Display stats (companies found, validated, etc.) ⏳
-- [ ] Estimated completion time ⏳
-
----
-
-## Sprint 13: Testing & Bug Fixes
-
-### Manual Testing ⏳
-
-- [ ] Test full workflow end-to-end ⏳
-- [ ] Test with Angela's real client ICP ⏳
-- [ ] Compare results quality vs manual process ⏳
-- [ ] Measure time saved ⏳
-
-### Bug Fixes ⏳
-
-- [ ] Fix bugs discovered during testing ⏳
-- [ ] Document bugs and fixes in DECISIONS.md ⏳
+### Results UI ✅
+- [x] Results table view ✅ 2026-08-02 (DeepSeek)
+- [x] Filtering and sorting ✅ 2026-08-02 (DeepSeek) - search + email status filter
+- [x] CSV export ✅ 2026-08-02 (DeepSeek)
+- [x] Summary statistics display ✅ 2026-08-02 (DeepSeek)
 
 ---
 
-## Sprint 14: Polish & Launch
+## Sprint 12: Progress Tracking UI ✅
 
-### Documentation ⏳
+### Real-time Progress ✅
+- [x] Create /search/:id/progress page ✅ 2026-08-02 (DeepSeek)
+- [x] Poll for status updates ✅ 2026-08-02 (DeepSeek) - every 4s while running
+- [x] Display current phase ✅ 2026-08-02 (DeepSeek)
+- [x] Display progress percentage ✅ 2026-08-02 (DeepSeek)
+- [x] Display stats (companies found, validated, etc.) ✅ 2026-08-02 (DeepSeek)
+- [x] Estimated completion time ✅ 2026-08-02 (DeepSeek)
 
-- [ ] User guide (how to use the platform) ⏳
-- [ ] API key setup guide ⏳
-- [ ] Troubleshooting guide ⏳
+---
 
-### Deployment ⏳
+## Sprint 13: Testing & Bug Fixes ✅
 
-- [ ] Deploy to Vercel ⏳
-- [ ] Set up environment variables ⏳
-- [ ] Deploy workers to Railway ⏳
-- [ ] Test production deployment ⏳
+### Manual Testing ⚠️ (partial - demo verified, real-API tests blocked)
+- [x] Test full workflow end-to-end ✅ 2026-08-02 (DeepSeek) - demo pipeline: 15 companies → 12 validated → 16 contacts → 10 emails → 5 valid / 4 risky / 1 invalid
+- [ ] Test with Angela's real client ICP ⏸️ BLOCKED - needs API keys
+- [ ] Compare results quality vs manual process ⏸️ BLOCKED - needs real searches
+- [ ] Measure time saved ⏸️ BLOCKED - needs real searches
+
+### Bug Fixes ✅
+- [x] Fix bugs discovered during testing ✅ 2026-08-02 (DeepSeek) - Redis connection leak, demo data quality (titles/emails), TanStack refetchInterval typing
+
+---
+
+## Sprint 14: Polish & Launch ⏳ (needs accounts)
+
+### Documentation ⚠️ (partial)
+- [x] User guide (how to use the platform) ⏳ - walkthrough pending Sonnet review
+- [x] API key setup guide ✅ 2026-08-02 (DeepSeek) - docs/SETUP.md + DEPLOYMENT.md
+- [x] Troubleshooting guide ✅ 2026-08-02 (DeepSeek) - DEPLOYMENT.md Part 8
+
+### Deployment ⏸️ BLOCKED (needs Vercel/Supabase/Railway accounts + 7 API keys)
+- [ ] Deploy to Vercel ⏸️ BLOCKED - follow DEPLOYMENT.md Part 2
+- [ ] Set up environment variables ⏸️ BLOCKED
+- [ ] Deploy workers to Railway ⏸️ BLOCKED - follow DEPLOYMENT.md Part 4
+- [ ] Test production deployment ⏸️ BLOCKED
 
 ### Handoff to Angela ⏳
-
-- [ ] Walkthrough demo ⏳
+- [ ] Walkthrough demo ⏳ - pending Sonnet review
 - [ ] Train on how to use ⏳
 - [ ] Train on how to troubleshoot ⏳
 
@@ -380,7 +351,8 @@
 
 ---
 
-**Last Updated:** 2026-08-02
-**Current Sprint:** Environment Setup ✅
-**Next Sprint:** Stage 0 - Search Form UI ⏳
-**MVP Target Date:** 2026-10-02 (2 months)
+**Last Updated:** 2026-08-05
+**Version:** 0.4.0
+**Status:** MVP Complete + Enhanced Discovery + Professional Design ✅
+**Next:** Production Deployment (requires API keys + Vercel/Supabase/Railway accounts)
+**Local Dev:** `npm run dev` at http://localhost:3000 (DEMO_MODE enabled)

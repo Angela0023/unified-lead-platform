@@ -62,6 +62,19 @@ cp .env.example .env.local
 
 **Never commit `.env.local`.** It is already in `.gitignore`.
 
+### API Key Registration Log (which profile each key was created under)
+
+| Variable | Profile Used | Date Created |
+|---|---|---|
+| `APOLLO_API_KEY` | Angela Profile (ymsiadb) | 2026-08-02 |
+| `DEEPSEEK_API_KEY` | Chris profile | 2026-08-02 |
+| `FIRECRAWL_API_KEY` | Angela Profile (ymsiadb) | 2026-08-02 |
+| `MILLION_VERIFIER_API_KEY` | Angela DD profile | 2026-08-02 |
+
+> Keys themselves are stored ONLY in the local `.env.local` file and
+> provider dashboards. If a key needs to be revoked/rotated, regenerate
+> it in the corresponding provider account listed above.
+
 ---
 
 ## 4. VS Code Setup

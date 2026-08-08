@@ -24,11 +24,23 @@ model Search {
   targetRole         String
   icpPrompt          String       @db.Text
 
+  // User-specified targets
+  targetCompanyCount    Int?        // e.g., 1000 companies
+  leadsPerCompany       Int?        // e.g., 2 decision makers per company
+
+  // Quality tracking
+  qualityDistribution   Json?       // { "score1": 50, "score2": 120, "score3": 200, "score4": 400, "score5": 230 }
+  qualityWarnings       String[]    @default([])
+
   // Status
   status             SearchStatus @default(PENDING)
   currentPhase       String? // "Company Discovery", "Validation", etc.
   progressPercent    Int          @default(0)
   errorMessage       String?      @db.Text
+
+  // Estimate (set at approval time, Stage 2)
+  estimatedCost      Float?
+  estimatedTimeMinutes Int?
 
   // Results Summary
   companiesFound     Int          @default(0)
@@ -40,6 +52,7 @@ model Search {
   // Relations
   companies          Company[]
   jobs               Job[]
+  discoveryAttempts  DiscoveryAttempt[]
 }
 
 enum SearchStatus {
@@ -60,11 +73,16 @@ model Company {
   industry       String?
   size           Int?
   location       String?
+  apolloId       String? // Apollo organization id (contact discovery)
 
   // Validation
   score          Int? // 1-5
   scoreReasoning String?       @db.Text
   scrapedData    Json? // Full website scrape result
+
+  // Discovery tracking
+  discoverySource       String?     // "apollo", "sales-navigator", "prospeo", "exa"
+  discoveryRound        Int         @default(1) // 1 = initial, 2+ = backfill rounds
 
   // Status
   status         CompanyStatus @default(DISCOVERED)
@@ -77,6 +95,8 @@ model Company {
 
   @@index([searchId])
   @@index([status])
+  @@index([discoverySource])
+  @@index([discoveryRound])
 }
 
 enum CompanyStatus {
@@ -95,6 +115,7 @@ model Contact {
   name         String
   title        String
   linkedinUrl  String?
+  apolloId     String? // Apollo person id (email enrichment)
 
   // Email
   email        String?
@@ -149,4 +170,30 @@ enum JobStatus {
   RUNNING
   COMPLETED
   FAILED
+}
+
+model DiscoveryAttempt {
+  id              String    @id @default(uuid())
+  searchId        String
+  search          Search    @relation(fields: [searchId], references: [id], onDelete: Cascade)
+
+  source          String    // "apollo", "sales-navigator", "prospeo", "exa"
+  round           Int       @default(1)
+  isDryRun        Boolean   @default(false)
+
+  sampleSize      Int       // Companies requested in dry-run
+  companiesFound  Int       // Companies actually returned
+  avgQualityScore Float?    // Average score from validation (if dry-run validated)
+
+  costEstimate    Float?
+  creditsUsed     Int       @default(0)
+
+  status          String    // "TESTING", "SUCCESS", "SKIPPED", "FAILED"
+  errorMessage    String?
+
+  createdAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  @@index([searchId, source])
+  @@index([round])
 }

@@ -1,43 +1,52 @@
-import "dotenv/config";
 import { Worker } from "bullmq";
+
+// Env vars are loaded by the start script via `node --env-file-if-exists=.env.local`.
+console.log(
+  `[worker] cwd: ${process.cwd()} | demo: ${process.env.DEMO_MODE ?? "unset"} | apollo key: ${process.env.APOLLO_API_KEY ? "set" : "MISSING"} | companies/search: ${process.env.COMPANIES_PER_SEARCH ?? "unset"}`,
+);
 import {
   QUEUE_NAME,
   createRedisConnection,
   type LeadJobData,
 } from "../lib/queue";
+import {
+  WORKER_HEARTBEAT_KEY,
+  WORKER_HEARTBEAT_TTL_SECONDS,
+} from "../lib/preflight";
+import { handleJob } from "./router";
 
 /**
  * Background worker process for the lead generation pipeline.
  * Run with: npm run worker
  *
- * Phase handlers (company-discovery, validation, etc.) are implemented
- * in their respective sprints (see TODO.md). Only the connection test
- * handler is registered in this sprint.
+ * Job handlers are registered in ./router.ts. The worker also emits a
+ * Redis heartbeat so the Stage 1 pre-flight checks can verify it is alive.
  */
 
 const connection = createRedisConnection();
+// Heartbeat uses its own connection so it never interferes with BullMQ's
+// internal lock/queue commands.
+const heartbeatConnection = createRedisConnection();
 
-const worker = new Worker<LeadJobData>(
-  QUEUE_NAME,
-  async (job) => {
-    console.log(
-      `[worker] Received job: ${job.name} (id: ${job.id}, searchId: ${job.data.searchId})`,
+const worker = new Worker<LeadJobData>(QUEUE_NAME, (job) => handleJob(job), {
+  connection,
+  // Phases can run 20-60+ minutes (scraping + AI validation). The default
+  // 30s lock would expire mid-phase and re-queue the job.
+  lockDuration: 60 * 60 * 1000,
+});
+
+const heartbeatTimer = setInterval(async () => {
+  try {
+    await heartbeatConnection.set(
+      WORKER_HEARTBEAT_KEY,
+      Date.now().toString(),
+      "EX",
+      WORKER_HEARTBEAT_TTL_SECONDS,
     );
-
-    switch (job.name) {
-      case "test-connection":
-        console.log(`[worker] Test connection job ${job.id} processed.`);
-        await job.updateProgress(100);
-        return { ok: true, processedAt: new Date().toISOString() };
-
-      default:
-        throw new Error(`No handler registered for job type: ${job.name}`);
-    }
-  },
-  {
-    connection,
-  },
-);
+  } catch (error) {
+    console.error("[worker] Failed to write heartbeat:", error);
+  }
+}, 10_000);
 
 worker.on("ready", () => {
   console.log("[worker] Connected to Redis and waiting for jobs...");
@@ -55,8 +64,10 @@ worker.on("failed", (job, error) => {
 
 async function shutdown(signal: string) {
   console.log(`[worker] ${signal} received, shutting down...`);
+  clearInterval(heartbeatTimer);
   await worker.close();
   await connection.quit();
+  await heartbeatConnection.quit();
   process.exit(0);
 }
 

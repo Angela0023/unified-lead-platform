@@ -66,9 +66,10 @@ unified-lead-platform/
 
 ## Current Status
 
-**Phase:** Planning & Documentation
+**Phase:** MVP Development (Sprints 3-13 complete, pending Sonnet review)
 **Last Updated:** 2026-08-02
 **GitHub Repo:** `Angela0023/unified-lead-platform`
+**Local demo:** `npm run dev` (Demo Mode enabled until API keys are added)
 
 ---
 
@@ -79,8 +80,10 @@ unified-lead-platform/
 - [Lead Gen Workflow](WORKFLOW.md) - Step-by-step process
 - [Potential Bottlenecks](BOTTLENECKS.md) - Risks and mitigation
 - [Best Scenario Vision](BEST-SCENARIO.md) - What success looks like
-- [Changelog](CHANGELOG.md) - Track all updates
+- [Changelog](CHANGELOG.md) - Track all changes
 - [Design Decisions](DECISIONS.md) - Rules and lessons
+- [Deployment Guide](DEPLOYMENT.md) - How to deploy to production
+- [Setup Guide](docs/SETUP.md) - Local dev + API keys
 
 ---
 

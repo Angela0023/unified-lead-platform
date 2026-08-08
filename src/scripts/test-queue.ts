@@ -1,4 +1,4 @@
-import "dotenv/config";
+// Env vars are loaded by the start script via `node --env-file-if-exists=.env.local`.
 import { Queue } from "bullmq";
 import { QUEUE_NAME, createRedisConnection } from "../lib/queue";
 

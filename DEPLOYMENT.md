@@ -9,6 +9,7 @@
 ## Overview
 
 This guide covers deploying the Unified Lead Platform to production using:
+
 - **Vercel** - Frontend + API Routes
 - **Supabase** - PostgreSQL Database
 - **Railway** - Redis + Background Workers
@@ -37,6 +38,7 @@ Before deploying, ensure you have:
 **What it does:** Company search, contact discovery, email enrichment (primary source)
 
 **How to get:**
+
 1. Go to https://app.apollo.io
 2. Log in to your account
 3. Click profile icon (top right) → Settings
@@ -56,6 +58,7 @@ Before deploying, ensure you have:
 **What it does:** AI company validation (scores companies 1-5 against ICP)
 
 **How to get:**
+
 1. Go to https://platform.deepseek.com
 2. Sign up or log in
 3. Navigate to API Keys
@@ -74,12 +77,14 @@ Before deploying, ensure you have:
 **What it does:** Website scraping for company validation
 
 **How to get:**
+
 1. Go to https://www.firecrawl.dev
 2. Sign up or log in
 3. Dashboard → API Keys
 4. Copy your API key
 
 **Alternative (if Firecrawl unavailable):**
+
 - Use basic web scraping (less reliable)
 - Document this in code comments
 
@@ -94,6 +99,7 @@ Before deploying, ensure you have:
 **What it does:** Email validation (valid/invalid/risky)
 
 **How to get:**
+
 1. Go to https://www.millionverifier.com
 2. Log in to your account
 3. Navigate to API
@@ -110,6 +116,7 @@ Before deploying, ensure you have:
 **What it does:** Fallback email enrichment when Apollo fails
 
 **How to get:**
+
 1. Go to https://prospeo.io
 2. Sign up or log in
 3. Dashboard → API
@@ -126,6 +133,7 @@ Before deploying, ensure you have:
 **What it does:** Second fallback email enrichment
 
 **How to get:**
+
 1. Go to https://expandi.io
 2. Log in to your account
 3. Settings → API
@@ -143,6 +151,7 @@ Before deploying, ensure you have:
 **What it does:** Secondary validation for "risky" emails from Million Verifier
 
 **How to get:**
+
 1. Go to https://www.bounceban.com
 2. Sign up or log in
 3. API Settings
@@ -176,6 +185,7 @@ Before deploying, ensure you have:
 3. Click "Import"
 
 **Vercel auto-detects Next.js:**
+
 ```
 Framework Preset: Next.js
 Build Command: npm run build
@@ -244,6 +254,7 @@ Value: https://unified-lead-platform.vercel.app
 ```
 
 **For each variable:**
+
 1. Enter Name (e.g., `APOLLO_API_KEY`)
 2. Enter Value (paste the API key)
 3. Check "Production" environment
@@ -259,6 +270,7 @@ Value: https://unified-lead-platform.vercel.app
 4. Wait for deployment to complete
 
 **Check deployment:**
+
 - Visit: https://unified-lead-platform.vercel.app
 - Should see landing page
 - Test a search (will fail if DB/Redis not set up yet)
@@ -300,11 +312,13 @@ Value: https://unified-lead-platform.vercel.app
 5. Copy the connection string (replace `[YOUR-PASSWORD]` with your password)
 
 **Format:**
+
 ```
 postgresql://postgres:[YOUR-PASSWORD]@db.[project-ref].supabase.co:5432/postgres
 ```
 
 **Example:**
+
 ```
 postgresql://postgres:MySecurePass123@db.abc123xyz.supabase.co:5432/postgres
 ```
@@ -384,6 +398,7 @@ npx prisma studio
 4. Copy the value
 
 **Format:**
+
 ```
 redis://default:[password]@[host].railway.app:6379
 ```
@@ -401,6 +416,7 @@ redis://default:[password]@[host].railway.app:6379
    - **Root Directory:** `/`
 
 5. Add environment variables (Variables tab):
+
    ```
    DATABASE_URL = [same as Supabase URL]
    REDIS_URL = [from step 4.3]
@@ -435,12 +451,14 @@ redis://default:[password]@[host].railway.app:6379
 ### 4.6 Verify Worker is Running
 
 **In Railway dashboard:**
+
 1. Click Worker service
 2. Go to "Deployments" tab
 3. Should show "Active"
 4. Check logs (should see "Worker started")
 
 **Test job processing:**
+
 1. Submit a search via app (leads.corsyx.com)
 2. Check Railway worker logs
 3. Should see job picked up and processed
@@ -457,6 +475,7 @@ redis://default:[password]@[host].railway.app:6379
 4. Click "Add"
 
 **Vercel will show DNS configuration needed:**
+
 ```
 Type: CNAME
 Name: leads
@@ -475,6 +494,7 @@ Value: cname.vercel-dns.com
 4. Click "Add record"
 
 **Add CNAME record:**
+
 ```
 Type: CNAME
 Name: leads
@@ -523,6 +543,7 @@ Once domain verified:
 4. SSL certificate should be valid (automatic from Vercel)
 
 **If not working:**
+
 - Check DNS propagation: https://dnschecker.org
 - Enter `leads.corsyx.com`
 - Should show CNAME pointing to `cname.vercel-dns.com`
@@ -535,6 +556,7 @@ Once domain verified:
 Vercel automatically provisions SSL certificates via Let's Encrypt.
 
 **Verify SSL:**
+
 1. Visit https://leads.corsyx.com
 2. Click padlock icon in browser
 3. Certificate should show:
@@ -543,6 +565,7 @@ Vercel automatically provisions SSL certificates via Let's Encrypt.
    - Valid
 
 **If certificate invalid:**
+
 - Wait 5-10 minutes (provisioning takes time)
 - Ensure domain verified in Vercel
 - Check Cloudflare proxy is OFF (gray cloud)
@@ -554,29 +577,34 @@ Vercel automatically provisions SSL certificates via Let's Encrypt.
 After completing all steps, verify everything works:
 
 ### Frontend (Vercel)
+
 - [ ] App accessible at https://leads.corsyx.com
 - [ ] SSL certificate valid
 - [ ] Landing page loads
 - [ ] Can navigate to /search page
 
 ### Database (Supabase)
+
 - [ ] DATABASE_URL set in Vercel
 - [ ] Migrations applied
 - [ ] Tables exist (Search, Company, Contact, Job)
 - [ ] Can create records
 
 ### Workers (Railway)
+
 - [ ] Worker service running
 - [ ] REDIS_URL set in Vercel
 - [ ] Job queue working
 - [ ] Worker picks up jobs from queue
 
 ### API Keys
+
 - [ ] All 7 API keys added to Vercel
 - [ ] Keys not exposed in frontend code
 - [ ] API calls succeed (test each integration)
 
 ### End-to-End Test
+
 - [ ] Submit a search via UI
 - [ ] Job queued in Redis
 - [ ] Worker picks up job
@@ -594,6 +622,7 @@ After completing all steps, verify everything works:
 **Symptoms:** Build fails, deployment shows error
 
 **Fixes:**
+
 1. Check build logs in Vercel dashboard
 2. Common causes:
    - Missing environment variables
@@ -608,6 +637,7 @@ After completing all steps, verify everything works:
 **Symptoms:** `PrismaClientInitializationError`
 
 **Fixes:**
+
 1. Verify DATABASE_URL is correct in Vercel env vars
 2. Check Supabase database is running (Supabase dashboard)
 3. Test connection locally:
@@ -623,6 +653,7 @@ After completing all steps, verify everything works:
 **Symptoms:** Jobs stuck in queue, worker logs show errors
 
 **Fixes:**
+
 1. Check Railway worker logs (Railway dashboard → Worker → Logs)
 2. Verify REDIS_URL correct in worker env vars
 3. Verify DATABASE_URL correct in worker env vars
@@ -636,6 +667,7 @@ After completing all steps, verify everything works:
 **Symptoms:** leads.corsyx.com shows error or doesn't load
 
 **Fixes:**
+
 1. Check DNS propagation: https://dnschecker.org
 2. Verify CNAME record in Cloudflare:
    - Name: `leads`
@@ -652,6 +684,7 @@ After completing all steps, verify everything works:
 **Symptoms:** Browser shows "Not Secure" warning
 
 **Fixes:**
+
 1. Wait 10 minutes (Vercel provisions certificates automatically)
 2. Ensure domain verified in Vercel
 3. Check Cloudflare proxy is OFF (gray cloud, not orange)
@@ -664,6 +697,7 @@ After completing all steps, verify everything works:
 **Symptoms:** Search fails, errors in logs about API connections
 
 **Fixes:**
+
 1. Verify API keys are correct in Vercel env vars
 2. Test each API key independently:
    - Apollo: Test in Apollo dashboard
@@ -679,6 +713,7 @@ After completing all steps, verify everything works:
 ### Vercel Monitoring
 
 **Check deployment health:**
+
 1. Vercel dashboard → Analytics
 2. View:
    - Response times
@@ -686,6 +721,7 @@ After completing all steps, verify everything works:
    - Traffic volume
 
 **Set up alerts:**
+
 1. Settings → Notifications
 2. Enable email alerts for:
    - Deployment failures
@@ -696,6 +732,7 @@ After completing all steps, verify everything works:
 ### Railway Worker Monitoring
 
 **Check worker health:**
+
 1. Railway dashboard → Worker service → Metrics
 2. Monitor:
    - CPU usage
@@ -703,6 +740,7 @@ After completing all steps, verify everything works:
    - Restart count
 
 **View logs:**
+
 1. Railway → Worker → Deployments → View Logs
 2. Check for errors in job processing
 
@@ -711,6 +749,7 @@ After completing all steps, verify everything works:
 ### Database Monitoring
 
 **Supabase monitoring:**
+
 1. Supabase dashboard → Database → Metrics
 2. Monitor:
    - Storage usage (500MB limit on free tier)
@@ -718,6 +757,7 @@ After completing all steps, verify everything works:
    - Query performance
 
 **Set up alerts:**
+
 1. Settings → Notifications
 2. Alert when storage >80% full
 
@@ -726,6 +766,7 @@ After completing all steps, verify everything works:
 ### Cost Monitoring
 
 **Monthly costs (estimated for MVP):**
+
 ```
 Vercel:              $0 (free tier)
 Supabase:            $0 (free tier, <500MB)
@@ -739,11 +780,13 @@ Total:               ~$12-30/month (excluding existing subscriptions)
 ```
 
 **Monitor usage:**
+
 - Vercel: Dashboard → Usage
 - Railway: Dashboard → Usage
 - Supabase: Dashboard → Billing
 
 **Upgrade when:**
+
 - Vercel: >100GB bandwidth/month → Pro plan ($20/month)
 - Supabase: >500MB storage → Pro plan ($25/month)
 - Railway: Free credit exhausted → Pay as you go
@@ -755,12 +798,14 @@ Total:               ~$12-30/month (excluding existing subscriptions)
 ### When to Scale (Post-MVP)
 
 **Triggers:**
+
 - 10+ concurrent users
 - 100+ searches per day
 - Database >400MB (80% of free tier)
 - Worker processing lag >30 minutes
 
 **Scaling steps:**
+
 1. **Upgrade Vercel to Pro** ($20/month)
    - 1000 GB bandwidth
    - More function executions
@@ -788,10 +833,12 @@ Total:               ~$12-30/month (excluding existing subscriptions)
 ### Database Backups
 
 **Supabase automatic backups:**
+
 - Free tier: No automatic backups
 - Pro tier: Daily backups (7-day retention)
 
 **Manual backup (MVP):**
+
 ```bash
 # Export database
 pg_dump $DATABASE_URL > backup-$(date +%Y%m%d).sql
@@ -800,6 +847,7 @@ pg_dump $DATABASE_URL > backup-$(date +%Y%m%d).sql
 ```
 
 **Recovery:**
+
 ```bash
 # Restore from backup
 psql $DATABASE_URL < backup-20260802.sql
@@ -810,12 +858,15 @@ psql $DATABASE_URL < backup-20260802.sql
 ### Code Backups
 
 **GitHub is primary backup:**
+
 - All code in `Angela0023/unified-lead-platform`
 - Enable branch protection on `main`
 - Require PRs for changes
 
 **Additional protection:**
+
 1. Tag releases:
+
    ```bash
    git tag -a v1.0.0 -m "MVP Release"
    git push origin v1.0.0
@@ -828,11 +879,13 @@ psql $DATABASE_URL < backup-20260802.sql
 ### Environment Variables Backup
 
 **Store securely offline:**
+
 1. Export from Vercel (Settings → Environment Variables)
 2. Save to password manager (1Password, LastPass)
 3. Document in secure note (not in git!)
 
 **Format:**
+
 ```bash
 # Unified Lead Platform - Production Env Vars
 # Last updated: 2026-08-02
@@ -883,7 +936,7 @@ APOLLO_API_KEY=...
    - Implement `/bounceban/client.ts`
    - Add to validation workflow:
      ```typescript
-     if (emailStatus === 'risky') {
+     if (emailStatus === "risky") {
        const recheck = await bounceban.validate(email);
        emailStatus = recheck.status;
      }
@@ -900,24 +953,28 @@ APOLLO_API_KEY=...
 **Complete this checklist before going live:**
 
 ### Pre-Deployment
+
 - [ ] MVP development complete (Sprint 13)
 - [ ] Code pushed to GitHub
 - [ ] All API keys obtained (7 total)
 - [ ] Accounts created (Vercel, Supabase, Railway)
 
 ### Vercel Setup
+
 - [ ] Project imported from GitHub
 - [ ] Environment variables added (all 7 API keys + infrastructure)
 - [ ] Deployment successful
 - [ ] App accessible at vercel.app domain
 
 ### Database Setup
+
 - [ ] Supabase project created
 - [ ] Migrations applied
 - [ ] DATABASE_URL added to Vercel
 - [ ] Tables verified in Supabase
 
 ### Worker Setup
+
 - [ ] Redis deployed on Railway
 - [ ] Worker service deployed
 - [ ] All env vars added to worker
@@ -925,6 +982,7 @@ APOLLO_API_KEY=...
 - [ ] REDIS_URL added to Vercel
 
 ### Domain Setup
+
 - [ ] Domain added in Vercel (leads.corsyx.com)
 - [ ] CNAME record added in Cloudflare
 - [ ] Domain verified in Vercel
@@ -932,6 +990,7 @@ APOLLO_API_KEY=...
 - [ ] NEXT_PUBLIC_APP_URL updated
 
 ### Testing
+
 - [ ] End-to-end search test passes
 - [ ] All API integrations working
 - [ ] Results saved to database
@@ -939,6 +998,7 @@ APOLLO_API_KEY=...
 - [ ] No errors in logs
 
 ### Production Ready
+
 - [ ] Monitoring enabled
 - [ ] Backups documented
 - [ ] Team trained on deployment process
