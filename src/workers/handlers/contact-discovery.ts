@@ -11,6 +11,8 @@ import {
   updateSearchProgress,
 } from "../../lib/pipeline";
 
+const MAX_CONTACTS_PER_COMPANY = 5; // Maximum contacts to save per company
+
 /** Expands a target role into searchable title variants (Apollo fuzzy-matches). */
 function buildTitleVariants(role: string): string[] {
   const lower = role.toLowerCase();

@@ -28,16 +28,20 @@ export function ConfirmSearch() {
     const companySize = searchParams.get("companySize") ?? "";
     const targetRole = searchParams.get("targetRole") ?? "";
     const icpPrompt = searchParams.get("icpPrompt") ?? "";
+    const targetCompanyCount = parseInt(searchParams.get("targetCompanyCount") ?? "500", 10);
+    const leadsPerCompany = parseInt(searchParams.get("leadsPerCompany") ?? "2", 10);
     if (
       industry.length === 0 ||
       !companySize ||
       location.length === 0 ||
       !targetRole ||
-      icpPrompt.length < 20
+      icpPrompt.length < 20 ||
+      isNaN(targetCompanyCount) ||
+      isNaN(leadsPerCompany)
     ) {
       return null;
     }
-    return { industry, companySize, location, targetRole, icpPrompt };
+    return { industry, companySize, location, targetRole, icpPrompt, targetCompanyCount, leadsPerCompany };
   }, [searchParams]);
 
   async function startSearch() {
@@ -112,6 +116,14 @@ export function ConfirmSearch() {
             <span className="font-medium">Target role: </span>
             {input.targetRole}
           </p>
+          <div className="flex flex-wrap gap-2">
+            <span className="font-medium">Target companies:</span>
+            <Badge variant="secondary">{input.targetCompanyCount}</Badge>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <span className="font-medium">Decision makers per company:</span>
+            <Badge variant="secondary">{input.leadsPerCompany}</Badge>
+          </div>
           <div>
             <span className="font-medium">ICP prompt: </span>
             <p className="mt-1 rounded-md bg-muted p-3">{input.icpPrompt}</p>

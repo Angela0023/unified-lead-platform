@@ -41,6 +41,9 @@ export async function GET(
       emailsFound: search.emailsFound,
       emailsValid: search.emailsValid,
     },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    qualityDistribution: search.qualityDistribution as any,
+    qualityWarnings: search.qualityWarnings as string[] | null,
     createdAt: search.createdAt.toISOString(),
     completedAt: search.completedAt?.toISOString() ?? null,
     estimatedCompletion,
@@ -50,6 +53,8 @@ export async function GET(
       location: search.location,
       targetRole: search.targetRole,
       icpPrompt: search.icpPrompt,
+      targetCompanyCount: search.targetCompanyCount ?? 500,
+      leadsPerCompany: search.leadsPerCompany ?? 2,
     },
   };
 

@@ -1,7 +1,6 @@
 import { config } from "@/lib/config";
 import { fetchJson } from "@/lib/http";
 import { demo } from "@/lib/demo-data";
-import { MillionVerifierError } from "./errors";
 import type {
   AuthCheckResult,
   CreditsResult,

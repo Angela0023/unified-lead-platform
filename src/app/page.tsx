@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RecentSearches } from "@/components/recent-searches";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function Home() {
@@ -18,7 +17,7 @@ export default function Home() {
           <div className="mb-10 flex justify-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-indigo-500/30 bg-indigo-500/10 px-4 py-2 text-sm font-medium text-indigo-400">
               <Star className="h-4 w-4 fill-indigo-400" />
-              Top-rated Agency 2024
+              Verified 70% Lead Quality
             </div>
           </div>
 
@@ -30,9 +29,8 @@ export default function Home() {
           </h1>
 
           <p className="mx-auto mb-12 max-w-2xl text-xl leading-relaxed text-gray-400">
-            Replace 40 hours of manual work with 15 minutes. AI-powered
-            validation across Apollo, DeepSeek, Firecrawl, and Million Verifier
-            ensures only quality leads.
+            Replace 40 hours of manual work with 15 minutes. Multi-source AI validation
+            verifies every company and contact, ensuring 70% of leads are qualified and ready to close.
           </p>
 
           {/* CTA Buttons */}
@@ -42,8 +40,8 @@ export default function Home() {
               size="lg"
               className="h-14 gap-2 rounded-xl bg-indigo-600 px-8 text-base font-semibold text-white hover:bg-indigo-700"
             >
-              <Link href="/search">
-                Find Leads
+              <Link href="/login">
+                Get Started
                 <ArrowRight className="h-5 w-5" />
               </Link>
             </Button>
@@ -53,7 +51,7 @@ export default function Home() {
               variant="outline"
               className="h-14 rounded-xl border-gray-700 bg-transparent px-8 text-base font-semibold text-white hover:bg-gray-900"
             >
-              <Link href="/search">View Demo</Link>
+              <Link href="/login">Sign In</Link>
             </Button>
           </div>
         </div>
@@ -82,13 +80,6 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* Recent Searches */}
-      <section className="bg-[#0a0a0a] px-6 py-16">
-        <div className="mx-auto max-w-6xl">
-          <RecentSearches />
         </div>
       </section>
     </div>

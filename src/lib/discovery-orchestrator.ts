@@ -4,7 +4,7 @@ import { exaClient } from "@/integrations/exa/client";
 import { apifyClient } from "@/integrations/apify/client";
 import { prisma } from "@/lib/db";
 import type { SearchInput } from "@/lib/types";
-import type { Company } from "@prisma/client";
+import { CompanyStatus, type Company } from "@prisma/client";
 
 interface DiscoverySource {
   name: "apollo" | "sales-navigator" | "prospeo" | "exa";
@@ -13,7 +13,9 @@ interface DiscoverySource {
   costPerCompany: number;
   handler: {
     test: () => Promise<{ authenticated: boolean }>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     dryRun: (params: SearchInput, limit: number) => Promise<any[]>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     discover: (params: SearchInput, limit: number) => Promise<any[]>;
   };
 }
@@ -35,7 +37,7 @@ const SOURCES: DiscoverySource[] = [
           page: 1,
           perPage: limit,
         });
-        return result.organizations || [];
+        return result.companies || [];
       },
       discover: async (params, limit) => {
         const result = await apolloClient.searchCompanies({
@@ -46,7 +48,7 @@ const SOURCES: DiscoverySource[] = [
           page: 1,
           perPage: Math.min(limit, 100), // Apollo max per page
         });
-        return result.organizations || [];
+        return result.companies || [];
       },
     },
   },
@@ -120,7 +122,8 @@ const SOURCES: DiscoverySource[] = [
         });
         return results.slice(0, limit);
       },
-      discover: async (params, limit) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      discover: async (params, _limit) => {
         return exaClient.searchCompanies(params.icpPrompt, {
           industry: params.industry,
           location: params.location,
@@ -249,6 +252,7 @@ export class DiscoveryOrchestrator {
         const results = await source.handler.discover(input, remaining);
 
         // Map to Company records
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const mapped = results.map((r: any) => ({
           searchId,
           name: r.name || r.companyName || r.title || "Unknown",
@@ -260,7 +264,7 @@ export class DiscoveryOrchestrator {
           apolloId: r.id,
           discoverySource: source.name,
           discoveryRound: round,
-          status: "DISCOVERED",
+          status: CompanyStatus.DISCOVERED,
         }));
 
         // Filter out duplicates by website

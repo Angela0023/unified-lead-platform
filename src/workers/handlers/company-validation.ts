@@ -128,7 +128,8 @@ export async function handleCompanyValidation(searchId: string) {
       await prisma.search.update({
         where: { id: searchId },
         data: {
-          qualityDistribution: qualityCheck.distribution,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          qualityDistribution: qualityCheck.distribution as any,
           qualityWarnings: qualityCheck.warnings,
         },
       });
